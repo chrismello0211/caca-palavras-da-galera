@@ -339,6 +339,31 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
 .aviso-net{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.4);color:#fecaca;
   border-radius:var(--rs);padding:11px 14px;font-weight:800;font-size:13px;margin-top:10px;display:none}
 
+/* ---------- v2: tipos de jogo, corrida, sobrevivência, detetive ---------- */
+.g-rosa{background:linear-gradient(135deg,#f472b6,#db2777)}
+.tipos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px}
+.tipo{background:var(--card);border:2px solid var(--line);border-radius:var(--rs);padding:10px 6px;text-align:center;font-weight:800;font-size:13px;color:var(--txt)}
+.tipo span{font-size:22px;display:block}
+.tipo small{display:block;color:var(--sub);font-size:10.5px;font-weight:800}
+.tipo.sel{border-color:var(--gold);background:rgba(251,191,36,.12)}
+.contagem{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(6,9,28,.78);backdrop-filter:blur(3px)}
+.contagem b{font-family:'Baloo 2';font-weight:800;font-size:120px;color:var(--gold);animation:pop .5s ease;text-shadow:0 8px 0 rgba(0,0,0,.35)}
+.lobby-jog{display:flex;gap:10px;margin:14px 0;align-items:stretch}
+.lobby-slot{flex:1;background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:16px 8px;text-align:center}
+.lobby-slot.on{border-color:var(--gold)}
+.lobby-slot .avatar{width:56px;height:56px;display:inline-block}
+.lobby-slot b{display:block;font-family:'Baloo 2';font-size:15px;margin-top:6px}
+.lobby-slot small{color:var(--sub);font-weight:800;font-size:11px}
+.lobby-espera{animation:pulsa 1.6s infinite}
+.pill.race{gap:6px;padding:4px 10px 4px 5px}
+.pill.race .avatar{width:24px;height:24px;display:inline-block}
+.chip.deles{opacity:.8;border-style:dashed}
+.chip .quem{font-size:10px;font-weight:900;color:var(--gold);margin-left:3px}
+.palavras.pistas{flex-direction:column;align-items:stretch;flex-wrap:nowrap}
+.palavras.pistas .chip{text-align:left;display:flex;align-items:center;gap:8px;border-radius:14px}
+.chip .len{background:rgba(255,255,255,.12);border-radius:8px;padding:1px 7px;font-size:11px;font-weight:900;flex:none}
+.pista-txt{min-width:0}
+
 </style>
 </head>
 <body>
@@ -378,6 +403,11 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
       <span>Desafiar um amigo<small>mesmo tabuleiro, cada um joga quando puder</small></span>
       <span class="selo">PELO ZAP</span>
     </button>
+    <button class="btn-grande g-rosa" id="btn-corrida">
+      <span class="ico">⚡</span>
+      <span>Corrida ao vivo<small>os dois no mesmo tabuleiro, em tempo real</small></span>
+      <span class="selo">NOVO</span>
+    </button>
     <button class="btn-grande g-ouro" id="btn-diario">
       <span class="ico">📅</span>
       <span>Desafio diário<small id="diario-sub">um tabuleiro novo por dia, igual pra todo mundo</small></span>
@@ -404,15 +434,18 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
     <button class="btn-volta" data-volta>←</button>
     <h2 id="setup-titulo">Jogar</h2>
   </div>
+  <div class="rotulo" id="rot-tipo" style="display:none;margin-top:2px">Modo de jogo</div>
+  <div class="tipos" id="setup-tipos" style="display:none"></div>
+  <div class="card" id="setup-info" style="display:none"></div>
   <div id="setup-duelo" style="display:none">
     <div class="rotulo" style="margin-top:2px">Quem vai jogar?</div>
     <input class="campo" id="duelo-n1" placeholder="Nome do jogador 1" maxlength="14" autocomplete="off">
     <div style="height:9px"></div>
     <input class="campo" id="duelo-n2" placeholder="Nome do jogador 2" maxlength="14" autocomplete="off">
   </div>
-  <div class="rotulo">Nível</div>
+  <div class="rotulo" id="rot-nivel">Nível</div>
   <div class="niveis" id="setup-niveis"></div>
-  <div class="rotulo">Tema</div>
+  <div class="rotulo" id="rot-tema">Tema</div>
   <div class="temas" id="setup-temas"></div>
   <div id="setup-custom" style="display:none;margin-top:10px">
     <textarea class="campo" id="custom-palavras" placeholder="Digite suas palavras separadas por vírgula ou uma por linha. Ex.: Lucas, paçoca, violão, capivara..."></textarea>
@@ -488,6 +521,11 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
 
 <section class="tela" id="tela-handoff">
   <div id="handoff-corpo"></div>
+</section>
+
+<section class="tela" id="tela-lobby">
+  <div class="topo"><button class="btn-volta" data-home>←</button><h2>⚡ Corrida ao vivo</h2></div>
+  <div id="lobby-corpo"></div>
 </section>
 
 <!-- ================= MODAIS ================= -->
@@ -797,7 +835,7 @@ const APP = {
   nome: 'Caça-Palavras da Galera',
   url: 'https://chrismello0211.github.io/caca-palavras-da-galera/',
   fb: 'https://bolao-da-copa-8be20-default-rtdb.firebaseio.com/bolao/caca',
-  versao: 'v2026.07.10'
+  versao: 'v2026.07.10.2'
 };
 const E = CGE, TEMAS = CG_TEMAS;
 const NIVEIS = {
@@ -935,12 +973,11 @@ document.addEventListener('click', e => {
 const setupCtx = { modo:'solo', nivel:'medio', tema:'animais', relogio:false };
 function renderSetup(modo){
   setupCtx.modo = modo; setupCtx.relogio = false;
-  $('#setup-titulo').textContent = modo==='solo' ? '🎯 Jogar' : modo==='desafio' ? '⚔️ Desafiar um amigo' : '🤝 Duelo local';
+  $('#setup-titulo').textContent = modo==='solo' ? '🎯 Jogar' : modo==='desafio' ? '⚔️ Desafiar um amigo' : modo==='corrida' ? '⚡ Corrida ao vivo' : '🤝 Duelo local';
   $('#setup-duelo').style.display = modo==='duelo' ? '' : 'none';
-  $('#setup-relogio-row').style.display = modo==='solo' ? '' : 'none';
   $('#switch-relogio').classList.remove('on');
   $('#setup-aviso-net').style.display = 'none';
-  $('#btn-comecar').textContent = modo==='desafio' ? 'Jogar e gerar desafio' : 'Começar';
+  $('#btn-comecar').textContent = modo==='desafio' ? 'Jogar e gerar desafio' : modo==='corrida' ? '⚡ Criar sala' : 'Começar';
   if(modo==='duelo'){ $('#duelo-n1').value = LS.get('duelo1', getPerfil().nome); $('#duelo-n2').value = LS.get('duelo2',''); }
   const nv = $('#setup-niveis'); nv.innerHTML = '';
   for(const [id,n] of Object.entries(NIVEIS)){
@@ -956,14 +993,14 @@ function renderSetup(modo){
     b.className = 'tema'+(id===setupCtx.tema?' sel':'');
     b.innerHTML = `<span>${emoji}</span><b>${nome}</b>`;
     b.onclick = ()=>{ setupCtx.tema = id; $$('#setup-temas .tema').forEach(x=>x.classList.remove('sel')); b.classList.add('sel');
-      $('#setup-custom').style.display = id==='custom' ? '' : 'none'; if(id==='custom') atualizarCustomInfo(); };
+      aplicarSetupVis(setupCtx.modo); if(id==='custom') atualizarCustomInfo(); };
     tg.appendChild(b);
   };
   addTema('surpresa','🎲','Surpresa');
   for(const t of TEMAS) addTema(t.id, t.emoji, t.nome);
   addTema('custom','✏️','Minhas palavras');
   if(setupCtx.tema==='surpresa' || !TEMAS.some(t=>t.id===setupCtx.tema) && setupCtx.tema!=='custom') setupCtx.tema='surpresa';
-  $('#setup-custom').style.display = setupCtx.tema==='custom' ? '' : 'none';
+  setupTipoRender(modo);
   show('setup');
 }
 $('#switch-relogio').onclick = function(){ setupCtx.relogio = !setupCtx.relogio; this.classList.toggle('on', setupCtx.relogio); };
@@ -988,16 +1025,21 @@ function atualizarCustomInfo(){
   $('#custom-info').innerHTML = msg;
 }
 $('#btn-comecar').onclick = ()=>{
-  const cfg = { modo: setupCtx.modo, nivel: setupCtx.nivel, relogio: setupCtx.modo==='solo' && setupCtx.relogio };
-  let temaId = setupCtx.tema;
-  if(temaId==='surpresa') temaId = TEMAS[Math.floor(Math.random()*TEMAS.length)].id;
-  if(temaId==='custom'){
-    const { ok } = palavrasCustom();
-    if(ok.length < 6){ toast('Digite pelo menos 6 palavras válidas','✏️'); return; }
-    cfg.palavrasCustom = ok;
+  const tipo = setupCtx.modo==='solo' ? (setupCtx.tipo||'classico') : 'classico';
+  if(tipo==='sobrevivencia'){ iniciarSobre(); return; }
+  const cfg = { modo: setupCtx.modo, nivel: setupCtx.nivel, relogio: setupCtx.modo==='solo' && tipo==='classico' && setupCtx.relogio };
+  if(tipo==='detetive'){ cfg.tipoJogo='detetive'; cfg.temaId='detetive'; }
+  else {
+    let temaId = setupCtx.tema;
+    if(temaId==='surpresa') temaId = TEMAS[Math.floor(Math.random()*TEMAS.length)].id;
+    if(temaId==='custom'){
+      const { ok } = palavrasCustom();
+      if(ok.length < 6){ toast('Digite pelo menos 6 palavras válidas','✏️'); return; }
+      cfg.palavrasCustom = ok;
+    }
+    cfg.temaId = temaId;
   }
-  cfg.temaId = temaId;
-  if(setupCtx.modo==='desafio' && !navigator.onLine){ $('#setup-aviso-net').style.display=''; return; }
+  if((setupCtx.modo==='desafio'||setupCtx.modo==='corrida') && !navigator.onLine){ $('#setup-aviso-net').style.display=''; return; }
   if(setupCtx.modo==='duelo'){
     const n1 = ($('#duelo-n1').value||'Jogador 1').trim().slice(0,14);
     const n2 = ($('#duelo-n2').value||'Jogador 2').trim().slice(0,14);
@@ -1005,27 +1047,30 @@ $('#btn-comecar').onclick = ()=>{
     cfg.duelo = { j: 1, nomes: [n1, n2], r1: null };
   }
   cfg.seed = (Math.random()*0xFFFFFFFF)>>>0;
+  if(setupCtx.modo==='corrida'){ criarSala(cfg); return; }
   iniciarPartida(cfg);
 };
 
 /* ---------- PARTIDA ---------- */
 let P = null;
 function poolDoTema(cfg){
+  if(cfg.tipoJogo==='detetive') return CG_DET.map(d=>d.p);
   if(cfg.palavrasCustom) return cfg.palavrasCustom;
   const t = TEMAS.find(t=>t.id===cfg.temaId);
   return t ? t.palavras : TEMAS[0].palavras;
 }
 function nomeTema(cfg){
+  if(cfg.tipoJogo==='detetive') return '🕵️ Detetive';
   if(cfg.palavrasCustom) return '✏️ Minhas palavras';
   const t = TEMAS.find(t=>t.id===cfg.temaId);
   return t ? `${t.emoji} ${t.nome}` : cfg.temaId;
 }
 function iniciarPartida(cfg){
-  const dif = E.DIFS[cfg.nivel];
+  const dif = cfg.difCustom || E.DIFS[cfg.nivel];
   const partida = E.montarPartida(cfg.seed, poolDoTema(cfg), dif);
   if(!partida){ toast('Não consegui montar esse tabuleiro. Tenta outro tema ou nível.','😅'); return; }
   const poderes = Object.assign({}, dif.poderes);
-  if(cfg.relogio){ poderes.relogio = 1; poderes.congelar = 1; }
+  if(cfg.relogio && !cfg.semRelogioPoderes){ poderes.relogio = 1; poderes.congelar = 1; }
   P = {
     cfg, dif, board: partida.board, palavras: partida.palavras,
     restantes: new Map(partida.palavras.map(p => [E.norm(p), p])),
@@ -1037,16 +1082,22 @@ function iniciarPartida(cfg){
   };
   $('#jogo-titulo').textContent = nomeTema(cfg);
   const modoTag = cfg.modo==='desafio' ? (cfg.papel==='rival' ? '⚔️ Desafio' : '⚔️ Criando desafio')
-    : cfg.modo==='diario' ? '📅 Diário' : cfg.duelo ? `🤝 Vez de ${cfg.duelo.nomes[cfg.duelo.j-1]}` : '🎯 Solo';
-  $('#jogo-sub').textContent = `${modoTag} · ${NIVEIS[cfg.nivel].nome}${cfg.relogio?' · ⏱ contra o relógio':''}`;
+    : cfg.modo==='diario' ? '📅 Diário'
+    : cfg.modo==='corrida' ? '⚡ Corrida'
+    : cfg.modo==='sobre' ? `💀 Rodada ${cfg.sobre.r}`
+    : cfg.tipoJogo==='detetive' ? '🕵️ Caso aberto'
+    : cfg.duelo ? `🤝 Vez de ${cfg.duelo.nomes[cfg.duelo.j-1]}` : '🎯 Solo';
+  const nivelTxt = cfg.difCustom ? (cfg.difCustom.rotulo||'') : NIVEIS[cfg.nivel].nome;
+  $('#jogo-sub').textContent = `${modoTag}${nivelTxt?' · '+nivelTxt:''}${cfg.relogio && cfg.modo!=='sobre' ? ' · ⏱ contra o relógio' : ''}`;
   montarBoardDOM(); montarChips(); montarPoderes(); atualizarContador(); atualizarPontosHud();
   clearInterval(P.timer);
-  P.timer = setInterval(tickTempo, 200);
-  tickTempo();
+  if(cfg.corrida){ $('#pill-tempo').textContent = '⏱ 0:00'; $('#pill-tempo').className = 'pill'; }
+  else { P.timer = setInterval(tickTempo, 200); tickTempo(); }
+  $('#race-ele')?.remove();
   show('jogo');
   requestAnimationFrame(()=>{ dimensionarBoard(); });
 }
-function encerrarPartidaSilencioso(){ if(P){ clearInterval(P.timer); P.fim = true; } }
+function encerrarPartidaSilencioso(){ if(P){ if(P.cfg && P.cfg.corrida && typeof corridaSair==='function') corridaSair(); clearInterval(P.timer); P.fim = true; } }
 $('#jogo-sair').onclick = ()=>{
   if(P && !P.fim && !confirm('Sair da partida? O progresso será perdido.')) return;
   encerrarPartidaSilencioso(); show('home');
@@ -1199,7 +1250,7 @@ function achouPalavra(normKey, cells){
   capsula(cells, PALETA[cor % PALETA.length], $('#g-achadas'), .5);
   let ganho = E.valorPalavra(bonita);
   const agora = Date.now();
-  if(P.ultimaAchada && agora - P.ultimaAchada < 12000){ ganho += 15; P.streakBonus += 15; Som.streak(); }
+  if(!P.cfg.corrida && P.ultimaAchada && agora - P.ultimaAchada < 12000){ ganho += 15; P.streakBonus += 15; Som.streak(); }
   P.ultimaAchada = agora;
   P.achadasTs.push(agora);
   if(P.achadasTs.length >= 5 && agora - P.achadasTs[P.achadasTs.length-5] <= 30000) P.cinco30 = true;
@@ -1211,7 +1262,11 @@ function achouPalavra(normKey, cells){
   voa.style.left = (P.pad + mx - 16)+'px'; voa.style.top = (P.pad + my - 30)+'px';
   $('#board-wrap').appendChild(voa); setTimeout(()=>voa.remove(), 1000);
   const chip = $(`#chips .chip[data-w="${normKey}"]`);
-  if(chip){ chip.classList.add('achada'); chip.style.background = PALETA[cor%PALETA.length]+'55'; chip.style.borderColor='transparent'; }
+  if(chip){
+    chip.classList.add('achada'); chip.style.background = PALETA[cor%PALETA.length]+'55'; chip.style.borderColor='transparent';
+    if(P.cfg.tipoJogo==='detetive') chip.innerHTML = esc(bonita)+' ✓';
+  }
+  if(P.cfg.corrida) corridaAchei(normKey, ganho);
   atualizarContador(); atualizarPontosHud();
   if(P.restantes.size === 0){ P.fimEmAndamento = true; setTimeout(()=>fimPartida(true), 700); }
 }
@@ -1219,11 +1274,17 @@ function atualizarContador(){ $('#contador').textContent = `${P.achadas.size} de
 function atualizarPontosHud(){ $('#hud-pontos').textContent = '⭐ ' + P.pontosPalavras; }
 function montarChips(){
   const box = $('#chips'); box.innerHTML = '';
-  const ordenadas = P.palavras.slice().sort((a,b)=>a.localeCompare(b,'pt'));
+  const det = P.cfg.tipoJogo==='detetive';
+  box.classList.toggle('pistas', det);
+  let ordenadas = P.palavras.slice();
+  if(det) ordenadas.sort((a,b)=> E.norm(a).length - E.norm(b).length || a.localeCompare(b,'pt'));
+  else ordenadas.sort((a,b)=> a.localeCompare(b,'pt'));
   for(const p of ordenadas){
     const w = E.norm(p);
     const b = document.createElement('button');
-    b.className = 'chip'; b.dataset.w = w; b.textContent = p;
+    b.className = 'chip'; b.dataset.w = w;
+    if(det) b.innerHTML = `<span class="len">${w.length}</span><span class="pista-txt">${esc(DET_MAP[w]||'?')}</span>`;
+    else b.textContent = p;
     b.onclick = ()=> clicouChip(w, b);
     box.appendChild(b);
   }
@@ -1345,20 +1406,22 @@ function checarConquistas(){
 }
 function registrarStats(res){
   const s = LS.get('stats',{});
+  const classico = !P.cfg.tipoJogo || P.cfg.tipoJogo==='classico';
   s.partidas = (s.partidas||0)+1;
   if(res.completa) s.completas = (s.completas||0)+1;
   s.palavras = (s.palavras||0)+res.n;
   s.pontosTotais = (s.pontosTotais||0)+res.pontos;
-  if(!P.cfg.palavrasCustom){
+  if(!P.cfg.palavrasCustom && TEMAS.some(t=>t.id===P.cfg.temaId)){
     const t = new Set(s.temas||[]); t.add(P.cfg.temaId); s.temas = [...t];
   }
   if(P.cinco30) s.cinco30 = true;
-  if(res.completa){
+  if(res.completa && classico){
     if(P.cfg.nivel==='facil' && res.t < 60) s.rapidoFacil = true;
     if(P.cfg.nivel!=='facil' && res.erros===0) s.semErro = true;
     if(P.cfg.nivel==='insano') s.insanoOk = true;
   }
-  if(P.cfg.modo==='solo' && res.completa){
+  if(res.completa && P.cfg.tipoJogo==='detetive') s.detetiveOk = true;
+  if(P.cfg.modo==='solo' && res.completa && classico){
     const r = LS.get('records',{});
     const ant = r[P.cfg.nivel];
     if(!ant || res.pontos > ant.p){ r[P.cfg.nivel] = { p:res.pontos, t:res.t, d:hoje() }; res.recorde = true; LS.set('records', r); }
@@ -1378,20 +1441,31 @@ function fimPartida(completa){
   P.fim = true; clearInterval(P.timer);
   P.armado = null; avisoPoder(null);
   const t = tempoSeg();
-  const bonus = completa ? E.bonusTempo(P.dif.par, t) : 0;
+  const m = P.cfg.modo;
+  let bonus = completa ? E.bonusTempo(P.dif.par, t) : 0;
+  if(m==='sobre' || m==='corrida') bonus = 0;
   const res = {
     n: P.achadas.size, total: P.palavras.length, t, erros: P.erros,
     base: P.pontosPalavras - P.streakBonus, streak: P.streakBonus, bonus,
     pontos: P.pontosPalavras + bonus, poderes: P.usados, completa
   };
-  if(completa){ Som.vitoria(); haptic([30,60,30,60,60]); confete(); } else { Som.derrota(); }
-  registrarStats(res);
+  if(m==='corrida'){
+    const cp = corridaPlacar();
+    res.pontos = cp.eu; res.base = cp.eu; res.streak = 0;
+    res.n = cp.minhas;
+  }
+  if(completa){
+    if(m==='sobre'){ Som.streak(); haptic(25); }
+    else { Som.vitoria(); haptic([30,60,30,60,60]); confete(); }
+  } else { Som.derrota(); }
+  if(m!=='sobre') registrarStats(res);
   const snap = snapshotBoard();
-  const m = P.cfg.modo;
   if(m==='solo' || m==='treino') renderResultadoSolo(res, snap);
   else if(m==='diario') fluxoDiarioFim(res, snap);
   else if(m==='desafio' && P.cfg.papel==='rival') fluxoRivalFim(res, snap);
   else if(m==='desafio') fluxoCriarDesafio(res, snap);
+  else if(m==='sobre') fluxoSobreFim(res, completa, snap);
+  else if(m==='corrida') fluxoCorridaFim(res, snap);
   else if(P.cfg.duelo) fluxoDueloFim(res, snap);
 }
 function linhaDet(rot, val, classe=''){ return `<div class="det"><span>${rot}</span><b class="${classe}">${val}</b></div>`; }
@@ -1840,7 +1914,7 @@ function fluxoDueloFim(res, snap){
 
 /* ---------- perfil ---------- */
 function telaPerfil(){
-  const p = getPerfil(), s = LS.get('stats',{}), r = LS.get('records',{}), h = LS.get('h2h',{}), di = LS.get('diario',{});
+  const p = getPerfil(), s = LS.get('stats',{}), r = LS.get('records',{}), h = LS.get('h2h',{}), di = LS.get('diario',{}), sb = LS.get('sobre',{});
   const feitas = new Set(LS.get('conq',[]));
   const rivais = Object.entries(h).sort((a,b)=>(b[1].v+b[1].d+b[1].e)-(a[1].v+a[1].d+a[1].e)).slice(0,8);
   $('#perfil-corpo').innerHTML = `
@@ -1864,7 +1938,9 @@ function telaPerfil(){
     </div>
     <div class="rotulo">Recordes por nível</div>
     <div class="detalhes">${Object.entries(NIVEIS).map(([id,n])=>
-      linhaDet(`${n.estrelas} ${n.nome}`, r[id] ? `${r[id].p} pts · ${fmtT(r[id].t)}` : '—')).join('')}</div>
+      linhaDet(`${n.estrelas} ${n.nome}`, r[id] ? `${r[id].p} pts · ${fmtT(r[id].t)}` : '—')).join('')}
+      ${linhaDet('💀 Sobrevivência', sb.rodada ? `rodada ${sb.rodada} · ${sb.pontos} pts` : '—')}
+      ${linhaDet('⚡ Corridas vencidas', s.corridaV||0)}</div>
     ${rivais.length ? `<div class="rotulo">Rivalidades ❤️‍🔥</div>
     <div class="lista">${rivais.map(([nome,o])=>`
       <div class="item-lista"><span class="avatar" style="width:34px;height:34px">${avatarSvg(o.avatar)}</span>
@@ -2113,12 +2189,579 @@ $('#btn-ajustes').onclick = ()=>{ renderAjustes(); abrirVeu('ajustes'); };
   renderHomeDyn();
   if(!LS.get('boasvindas')){ LS.set('boasvindas',1); setTimeout(()=>toast('Toque no seu nome pra escolher seu bicho','👋','Cada jogador tem o seu'),1200); }
   const m = location.search.match(/[?&]d=([A-Za-z0-9]{4,8})/);
+  const ms = location.search.match(/[?&]s=([A-Za-z0-9]{4,8})/);
   history.replaceState(null, '', location.pathname);
   location.hash = '';
   if(m){ abrirDesafio(m[1]); }
+  else if(ms){ setTimeout(()=> entrarSala(ms[1]), 0); }
   else show('home', true);
   if('serviceWorker' in navigator) addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 })();
+
+/* ============ CAÇA-PALAVRAS DA GALERA — v2 (detetive, sobrevivência, corrida ao vivo) ============ */
+
+/* ---------- DETETIVE: banco de pistas ---------- */
+const CG_DET = [
+  {p:'Leão',c:'O rei da selva'},{p:'Abelha',c:'Faz mel e vive em colmeia'},{p:'Coruja',c:'Ave símbolo da sabedoria'},
+  {p:'Tartaruga',c:'Leva a casa nas costas'},{p:'Camaleão',c:'Muda de cor pra se esconder'},{p:'Golfinho',c:'O mais esperto dos mares'},
+  {p:'Formiga',c:'Pequena, forte e trabalhadeira'},{p:'Pinguim',c:'Ave de fraque que não voa'},{p:'Girafa',c:'Pescoço mais alto do mundo'},
+  {p:'Canguru',c:'Carrega o filhote na bolsa'},{p:'Vagalume',c:'Acende no escuro da noite'},{p:'Aranha',c:'Tece teias de oito patas'},
+  {p:'Caramujo',c:'Deixa um rastro brilhante'},{p:'Morcego',c:'Voa de cabeça pra baixo'},{p:'Pavão',c:'Abre um leque de penas'},
+  {p:'Brasil',c:'País do futebol e do açaí'},{p:'Deserto',c:'Areia a perder de vista'},{p:'Vulcão',c:'Montanha que cospe fogo'},
+  {p:'Amazonas',c:'O rio mais caudaloso do mundo'},{p:'Egito',c:'Terra das pirâmides'},{p:'Japão',c:'Terra do sol nascente'},
+  {p:'Nordeste',c:'Região do forró e do cangaço'},{p:'Ilha',c:'Terra cercada de água'},{p:'Cachoeira',c:'Água que despenca da pedra'},
+  {p:'Farol',c:'Guia os navios à noite'},{p:'Ponte',c:'Liga as duas margens'},{p:'Caatinga',c:'Bioma do sertão nordestino'},
+  {p:'Equador',c:'Linha que divide o planeta'},{p:'Oásis',c:'Água no meio do deserto'},{p:'Trilha',c:'Caminho no meio do mato'},
+  {p:'Feijoada',c:'Prato de sábado com laranja'},{p:'Pipoca',c:'Milho que estoura na panela'},{p:'Tapioca',c:'Goma na chapa, recheio à escolha'},
+  {p:'Canjica',c:'Doce de milho de festa junina'},{p:'Brigadeiro',c:'Docinho de festa enrolado'},{p:'Cuscuz',c:'Milho no vapor, café nordestino'},
+  {p:'Açaí',c:'Roxo, gelado e do Pará'},{p:'Rapadura',c:'Doce duro de cana'},{p:'Pamonha',c:'Milho cozido na própria palha'},
+  {p:'Alho',c:'Espanta vampiro e dá tempero'},{p:'Melancia',c:'Verde por fora, vermelha por dentro'},{p:'Coco',c:'Água gelada dentro da casca dura'},
+  {p:'Caju',c:'A castanha fica do lado de fora'},{p:'Jabuticaba',c:'Fruta que nasce grudada no tronco'},{p:'Limão',c:'Azedinho da caipirinha'},
+  {p:'Milho',c:'Espiga de festa junina'},{p:'Canela',c:'Casca que vira tempero doce'},{p:'Mandioca',c:'Raiz que vira farinha'},
+  {p:'Bússola',c:'Aponta sempre pro norte'},{p:'Âncora',c:'Segura o navio no lugar'},{p:'Lupa',c:'Deixa tudo maior'},
+  {p:'Chave',c:'Abre porta e fecha cadeado'},{p:'Espelho',c:'Mostra você ao contrário'},{p:'Relógio',c:'Marca as horas no pulso'},
+  {p:'Guarda-chuva',c:'Abre quando o céu fecha'},{p:'Vassoura',c:'Varre o chão e voa nos contos'},{p:'Escada',c:'Sobe degrau por degrau'},
+  {p:'Panela',c:'Onde o feijão cozinha'},{p:'Tesoura',c:'Corta papel com duas lâminas'},{p:'Agulha',c:'Fininha, com um olho só'},
+  {p:'Martelo',c:'Bate prego na madeira'},{p:'Balança',c:'Diz quanto você pesa'},{p:'Peneira',c:'Separa o fino do grosso'},
+  {p:'Lanterna',c:'Luz que cabe na mão'},{p:'Cadeado',c:'Só abre com a chave certa'},{p:'Apito',c:'O juiz sopra pra parar o jogo'},
+  {p:'Coração',c:'Bate sem parar no peito'},{p:'Joelho',c:'Dobra a perna no meio'},{p:'Pulmão',c:'Enche de ar a cada fôlego'},
+  {p:'Sobrancelha',c:'Mora em cima dos olhos'},{p:'Cotovelo',c:'A dobra do braço'},{p:'Coluna',c:'Sustenta o corpo em pé'},
+  {p:'Língua',c:'Sente o gosto de tudo'},{p:'Tornozelo',c:'Liga o pé à perna'},{p:'Cérebro',c:'O computador do corpo'},
+  {p:'Arco-íris',c:'Sete cores depois da chuva'},{p:'Neblina',c:'Nuvem que desce pro chão'},{p:'Trovão',c:'O barulho do relâmpago'},
+  {p:'Orvalho',c:'Gotas da madrugada na grama'},{p:'Eclipse',c:'Quando um astro esconde o outro'},{p:'Maré',c:'Sobe e desce com a lua'},
+  {p:'Semente',c:'Todo grande começo cabe nela'},{p:'Raiz',c:'A parte da planta que ninguém vê'},{p:'Ninho',c:'Berço de passarinho'},
+  {p:'Colmeia',c:'A fábrica de mel'},{p:'Estrela',c:'Brilha de longe no céu'},{p:'Lua',c:'Cheia, nova, minguante ou crescente'},
+  {p:'Professor',c:'Ensina a turma todo dia'},{p:'Bombeiro',c:'Apaga incêndio e salva gato'},{p:'Dentista',c:'Cuida do seu sorriso'},
+  {p:'Carteiro',c:'Entrega cartas de porta em porta'},{p:'Padeiro',c:'Acorda cedo pra fazer pão'},{p:'Piloto',c:'Comanda o avião'},
+  {p:'Juiz',c:'Apita o jogo e mostra cartão'},{p:'Pescador',c:'Joga a rede e espera'},{p:'Palhaço',c:'Nariz vermelho e gargalhada'},
+  {p:'Goleiro',c:'O único que pega com a mão'},{p:'Escanteio',c:'Bola que sai pela linha de fundo'},{p:'Empate',c:'Quando ninguém vence'},
+  {p:'Maratona',c:'Corrida de 42 quilômetros'},{p:'Xadrez',c:'Rei, rainha, bispo e cavalo'},{p:'Peteca',c:'Vai e volta na palma da mão'},
+  {p:'Pipa',c:'Dança no céu presa na linha'},{p:'Amarelinha',c:'Pula casa por casa até o céu'},{p:'Esconde-esconde',c:'Um conta, os outros somem'},
+  {p:'Violão',c:'Seis cordas de roda de amigos'},{p:'Sanfona',c:'Abre e fecha tocando forró'},{p:'Pandeiro',c:'Chacoalha na roda de samba'},
+  {p:'Maestro',c:'Rege a orquestra com a batuta'},{p:'Coral',c:'Muitas vozes cantando juntas'},{p:'Berimbau',c:'Toca na roda de capoeira'},
+  {p:'Biblioteca',c:'A casa dos livros'},{p:'Alfabeto',c:'Do A ao Z'},{p:'Dicionário',c:'Explica palavra por palavra'},
+  {p:'Mochila',c:'Carrega os cadernos nas costas'},{p:'Recreio',c:'A melhor parte da aula'},{p:'Borracha',c:'Apaga o que o lápis errou'},
+  {p:'Travesseiro',c:'Segura sua cabeça à noite'},{p:'Cobertor',c:'Esquenta na noite fria'},{p:'Janela',c:'A moldura da rua'},
+  {p:'Chuveiro',c:'Chuva quente do banheiro'},{p:'Geladeira',c:'O lugar mais frio da casa'},{p:'Despertador',c:'Toca cedo e ninguém gosta'},
+  {p:'Sombra',c:'Te segue no dia de sol'},{p:'Eco',c:'Repete o que você grita'},{p:'Pegada',c:'Marca que o pé deixa'},
+  {p:'Segredo',c:'Só conta pra quem confia'},{p:'Saudade',c:'Palavra que só existe em português'},{p:'Bocejo',c:'Contagia quem está perto'},
+  {p:'Soluço',c:'Susto dizem que cura'},{p:'Cócegas',c:'Riso que não dá pra segurar'},{p:'Piscada',c:'Um olho fecha de propósito'},
+  {p:'Aniversário',c:'Dia de bolo e parabéns'},{p:'Presente',c:'Vem embrulhado com laço'},{p:'Convite',c:'Chama você pra festa'},
+  {p:'Fogueira',c:'Esquenta a festa de São João'},{p:'Bandeirinha',c:'Enfeita o arraial colorido'},{p:'Quadrilha',c:'Dança de casais no arraiá'},
+  {p:'Semáforo',c:'Verde, amarelo e vermelho'},{p:'Rotatória',c:'Círculo onde os carros giram'},{p:'Calçada',c:'Caminho de quem vai a pé'},
+  {p:'Padaria',c:'Cheiro de pão quentinho'},{p:'Feira',c:'Barracas de fruta na rua'},{p:'Praça',c:'Banco, árvore e pombo'},
+  {p:'Trem',c:'Anda sobre trilhos'},{p:'Jangada',c:'Barco de vela do pescador'},{p:'Balão',c:'Sobe com ar quente'},
+  {p:'Foguete',c:'Corta o céu rumo ao espaço'},{p:'Submarino',c:'Navega por baixo da água'},{p:'Charrete',c:'Carro puxado a cavalo'}
+];
+const DET_MAP = {}; for(const d of CG_DET) DET_MAP[E.norm(d.p)] = d.c;
+
+/* ---------- setup: tipos de jogo + visibilidade ---------- */
+setupCtx.tipo = setupCtx.tipo || 'classico';
+const TIPOS = {
+  classico:      { e:'🎯', nome:'Clássico',      d:'nível e tema' },
+  sobrevivencia: { e:'💀', nome:'Sobrevivência', d:'tempo caindo' },
+  detetive:      { e:'🕵️', nome:'Detetive',      d:'só as pistas' }
+};
+function setupTipoRender(modo){
+  const mostra = modo === 'solo';
+  $('#rot-tipo').style.display = mostra ? '' : 'none';
+  $('#setup-tipos').style.display = mostra ? '' : 'none';
+  if(mostra){
+    const box = $('#setup-tipos'); box.innerHTML = '';
+    for(const [id,t] of Object.entries(TIPOS)){
+      const b = document.createElement('button');
+      b.className = 'tipo' + (id===setupCtx.tipo ? ' sel' : '');
+      b.innerHTML = `<span>${t.e}</span>${t.nome}<small>${t.d}</small>`;
+      b.onclick = ()=>{ setupCtx.tipo = id; $$('#setup-tipos .tipo').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); aplicarSetupVis(modo); };
+      box.appendChild(b);
+    }
+  }
+  aplicarSetupVis(modo);
+}
+function aplicarSetupVis(modo){
+  const tipo = modo==='solo' ? setupCtx.tipo : 'classico';
+  const temTema = tipo==='classico';
+  const temNivel = tipo!=='sobrevivencia';
+  $('#rot-nivel').style.display = temNivel ? '' : 'none';
+  $('#setup-niveis').style.display = temNivel ? '' : 'none';
+  $('#rot-tema').style.display = temTema ? '' : 'none';
+  $('#setup-temas').style.display = temTema ? '' : 'none';
+  $('#setup-custom').style.display = (temTema && setupCtx.tema==='custom') ? '' : 'none';
+  $('#setup-relogio-row').style.display = (modo==='solo' && tipo==='classico') ? '' : 'none';
+  const info = $('#setup-info');
+  if(modo==='solo' && tipo==='sobrevivencia'){
+    const rec = LS.get('sobre', {});
+    info.style.display = '';
+    info.innerHTML = `<b style="font-family:'Baloo 2';font-size:16px">💀 Como funciona</b>
+      <p style="color:var(--sub);font-weight:800;font-size:13px;margin-top:6px">Rodadas seguidas de tabuleiros pequenos. O tempo diminui a cada rodada e as direções vão ficando mais malucas. Ache todas as palavras pra avançar. Uma 🔍 lupa nova a cada 3 rodadas.</p>
+      ${rec.rodada ? `<p style="color:var(--gold);font-weight:900;font-size:13px;margin-top:8px">🏅 Seu recorde: rodada ${rec.rodada} · ${rec.pontos} pts</p>` : ''}`;
+  } else if(modo==='solo' && tipo==='detetive'){
+    info.style.display = '';
+    info.innerHTML = `<b style="font-family:'Baloo 2';font-size:16px">🕵️ Como funciona</b>
+      <p style="color:var(--sub);font-weight:800;font-size:13px;margin-top:6px">Nada de lista de palavras: você recebe só as pistas e o número de letras. Decifre e ache no tabuleiro. A 🔍 lupa ajuda quando travar.</p>`;
+  } else if(modo==='corrida'){
+    info.style.display = '';
+    info.innerHTML = `<b style="font-family:'Baloo 2';font-size:16px">⚡ Como funciona</b>
+      <p style="color:var(--sub);font-weight:800;font-size:13px;margin-top:6px">Você cria a sala, manda o código e os dois jogam o mesmo tabuleiro ao mesmo tempo. Cada palavra vale pra quem achar primeiro. Precisa de internet nos dois celulares.</p>`;
+  } else info.style.display = 'none';
+}
+
+/* ---------- overlay de contagem ---------- */
+function countdown(fim){
+  const ov = document.createElement('div');
+  ov.className = 'contagem';
+  document.body.appendChild(ov);
+  let n = 3;
+  const passo = ()=>{
+    if(n > 0){ ov.innerHTML = `<b>${n}</b>`; Som.tick(); haptic(15); n--; setTimeout(passo, 800); }
+    else { ov.innerHTML = `<b style="font-size:64px">⚡ VALENDO!</b>`; Som.poder(); haptic([20,50,20]); setTimeout(()=>{ ov.remove(); fim(); }, 650); }
+  };
+  passo();
+}
+function largadaTimer(){
+  if(!P || P.fim) return;
+  P._last = Date.now();
+  P.timer = setInterval(tickTempo, 200);
+  tickTempo();
+}
+
+/* ---------- SOBREVIVÊNCIA ---------- */
+let SOBRE = null;
+const sobreCfg = r => ({
+  size: r<=3 ? 8 : r<=6 ? 9 : 10,
+  palavras: r<=3 ? 6 : r<=6 ? 7 : 8,
+  dirs: r<=3 ? ['E','S'] : r<=6 ? ['E','S','SE','NE'] : r<=9 ? ['E','S','SE','NE','W','N'] : Object.keys(E.DIRS),
+  tempo: Math.max(22, 50 - (r-1)*3)
+});
+function iniciarSobre(){
+  SOBRE = { r: 1, total: 0, palavras: 0, lupas: 1 };
+  sobreRodada();
+}
+function sobreRodada(){
+  const c = sobreCfg(SOBRE.r);
+  const tema = TEMAS[Math.floor(Math.random()*TEMAS.length)];
+  iniciarPartida({
+    modo:'sobre', temaId: tema.id, relogio: true, semRelogioPoderes: true,
+    seed: (Math.random()*0xFFFFFFFF)>>>0,
+    sobre: { r: SOBRE.r },
+    difCustom: { size:c.size, palavras:c.palavras, dirs:c.dirs, par:c.tempo, limite:c.tempo,
+      poderes:{ lupa: SOBRE.lupas }, rotulo: c.tempo+'s' }
+  });
+}
+function fluxoSobreFim(res, completa, snap){
+  SOBRE.palavras += res.n;
+  if(completa){
+    const resta = Math.max(0, Math.ceil((P.limiteMs + P.extraMs - P.elapsedMs)/1000));
+    const ganho = res.base + res.streak + resta*2;
+    SOBRE.total += ganho;
+    SOBRE.lupas = Math.min(3, (P.poderes.lupa||0) + (SOBRE.r % 3 === 0 ? 1 : 0));
+    SOBRE.r++;
+    toast(`Rodada ${SOBRE.r-1} fechada! +${ganho} pts`, '💀', resta ? `sobraram ${resta}s (+${resta*2})` : '');
+    const ov = document.createElement('div');
+    ov.className = 'contagem';
+    ov.innerHTML = `<b style="font-size:52px">💀 RODADA ${SOBRE.r}</b>`;
+    document.body.appendChild(ov);
+    setTimeout(()=>{ ov.remove(); sobreRodada(); }, 1200);
+    return;
+  }
+  // fim de jogo
+  SOBRE.total += res.base + res.streak;
+  const rec = LS.get('sobre', {});
+  const recorde = !rec.pontos || SOBRE.total > rec.pontos;
+  if(recorde) LS.set('sobre', { rodada: SOBRE.r, pontos: SOBRE.total, d: hoje() });
+  const s = LS.get('stats', {});
+  s.partidas = (s.partidas||0)+1;
+  s.palavras = (s.palavras||0) + SOBRE.palavras;
+  s.pontosTotais = (s.pontosTotais||0) + SOBRE.total;
+  s.sobreRodada = Math.max(s.sobreRodada||0, SOBRE.r);
+  LS.set('stats', s); checarConquistas();
+  const totalFinal = SOBRE.total, rodadaFinal = SOBRE.r, palavrasRun = SOBRE.palavras;
+  $('#resultado-titulo').textContent = 'Sobrevivência';
+  $('#resultado-corpo').innerHTML = `
+    <div class="resultado-topo">
+      <span class="trofeu">💀</span>
+      <h2>Chegou na rodada ${rodadaFinal}!</h2>
+      <p>${palavrasRun} palavras na corrida contra o tempo</p>
+      ${recorde ? '<span class="selo-recorde">🎖️ Novo recorde!</span>' : `<p style="margin-top:4px">🏅 Recorde: rodada ${rec.rodada} · ${rec.pontos} pts</p>`}
+    </div>
+    <div class="placar-grande">${totalFinal}<small>PONTOS</small></div>
+    <button class="btn-acao" id="sb-denovo">💀 Tentar de novo</button>
+    <button class="btn-acao ouro" id="sb-img">🖼️ Compartilhar imagem</button>
+    <button class="btn-acao fantasma" data-home>🏠 Início</button>`;
+  $('#sb-denovo').onclick = ()=> iniciarSobre();
+  $('#sb-img').onclick = ()=> compartilharImagem('solo', { res:{ pontos: totalFinal, n: palavrasRun, total: palavrasRun, t: 0 }, tema:'💀 Sobrevivência', nivel:'rodada '+rodadaFinal, snap, sub:'Sobrevivência' });
+  show('resultado');
+}
+
+/* ---------- CORRIDA AO VIVO ---------- */
+let SALA = null;
+async function salaCodigoLivre(){
+  for(let i=0;i<6;i++){
+    const c = Array.from({length:6},()=>ALFA[Math.random()*ALFA.length|0]).join('');
+    const ex = await fbGet('salas/'+c);
+    if(ex===null && (await fbGet('desafios/'+c))===null) return c;
+  }
+  throw new Error('sem código');
+}
+function linkSala(code){ return `${APP.url}?s=${code}`; }
+function fecharSala(){
+  if(!SALA) return;
+  try{ SALA.es && SALA.es.close(); }catch{}
+  clearInterval(SALA.poll); clearInterval(SALA.pingIv); clearInterval(SALA.watch);
+  SALA = null;
+}
+function lobbyMsg(html){ $('#lobby-corpo').innerHTML = html; show('lobby', false); }
+function lobbyErro(msg, retry){
+  lobbyMsg(`<div class="resultado-topo"><span class="trofeu">📡</span><h2>Opa!</h2><p>${msg}</p></div>
+    ${retry ? '<button class="btn-acao" id="lb-retry">🔄 Tentar de novo</button>' : ''}
+    <button class="btn-acao fantasma" data-home>🏠 Início</button>`);
+  if(retry) $('#lb-retry').onclick = retry;
+}
+async function criarSala(cfg){
+  lobbyMsg(`<div class="centro-carrega"><span class="spin"></span><br><br>Criando sua sala…</div>`);
+  try{
+    const code = await salaCodigoLivre();
+    const eu = getPerfil();
+    await fbPut('salas/'+code, {
+      v:1, criado: Date.now(), status:'lobby',
+      seed: cfg.seed, tema: cfg.temaId, dif: cfg.nivel, palavras: cfg.palavrasCustom || null,
+      j: { [uid()]: { n: eu.nome, a: eu.avatar, papel:'dono', ping: {'.sv':'timestamp'} } }
+    });
+    const minhas = LS.get('salas', []); minhas.unshift({ code, ts: Date.now() }); LS.set('salas', minhas.slice(0,10));
+    abrirSalaCtx(code, true);
+  }catch(e){ lobbyErro('Não consegui criar a sala. Confere a internet.', ()=>criarSala(cfg)); }
+}
+async function entrarSala(code){
+  code = String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+  lobbyMsg(`<div class="centro-carrega"><span class="spin"></span><br><br>Entrando na sala ${code}…</div>`);
+  let s = null;
+  try{ s = await fbGet('salas/'+code); }catch{ lobbyErro('Sem conexão. Verifica a internet.', ()=>entrarSala(code)); return; }
+  if(!s){ lobbyErro(`Sala <b>${code}</b> não encontrada. Confere o código com seu amigo.`); return; }
+  const meu = uid(), js = s.j || {};
+  if(!js[meu]){
+    if(s.status !== 'lobby'){ lobbyErro('Essa corrida já começou ou terminou. Peça uma sala nova!'); return; }
+    if(Object.keys(js).length >= 2){ lobbyErro('Essa sala já está cheia. Peça outra pro seu amigo!'); return; }
+    const eu = getPerfil();
+    try{ await fbPut(`salas/${code}/j/${meu}`, { n: eu.nome, a: eu.avatar, papel:'rival', ping: {'.sv':'timestamp'} }); }
+    catch{ lobbyErro('Não consegui entrar. Tenta de novo.', ()=>entrarSala(code)); return; }
+  }
+  abrirSalaCtx(code, js[meu] ? js[meu].papel==='dono' : false);
+}
+function abrirSalaCtx(code, dono){
+  fecharSala();
+  SALA = { code, dono, espelho: null, largou: false };
+  renderLobby();
+  iniciarSync();
+  SALA.pingIv = setInterval(()=>{ if(SALA) fb(`salas/${code}/j/${uid()}/ping`, { method:'PUT', body:'{".sv":"timestamp"}' }).catch(()=>{}); }, 8000);
+}
+function iniciarSync(){
+  const code = SALA.code;
+  const liga = ()=>{
+    try{
+      const es = new EventSource(`${APP.fb}/salas/${code}.json`);
+      SALA.es = es;
+      es.addEventListener('put', ev => { const d = JSON.parse(ev.data); aplicarEvento(d.path, d.data, false); });
+      es.addEventListener('patch', ev => { const d = JSON.parse(ev.data); aplicarEvento(d.path, d.data, true); });
+      es.onerror = ()=>{ if(SALA && SALA.es === es){ es.close(); SALA.es = null; if(!SALA.poll){ SALA.poll = setInterval(pollSala, 2500); pollSala(); } } };
+    }catch{ SALA.poll = setInterval(pollSala, 2500); pollSala(); }
+  };
+  liga();
+}
+async function pollSala(){
+  if(!SALA) return;
+  try{ SALA.espelho = await fbGet('salas/'+SALA.code); aoAtualizarSala(); }catch{}
+}
+function aplicarEvento(path, data, merge){
+  if(!SALA) return;
+  const partes = String(path||'/').split('/').filter(Boolean);
+  if(partes.length === 0){
+    if(merge && data && typeof data==='object') SALA.espelho = Object.assign(SALA.espelho||{}, data);
+    else SALA.espelho = data;
+  } else {
+    if(!SALA.espelho) SALA.espelho = {};
+    let alvo = SALA.espelho;
+    for(let i=0;i<partes.length-1;i++){ if(typeof alvo[partes[i]] !== 'object' || alvo[partes[i]]===null) alvo[partes[i]] = {}; alvo = alvo[partes[i]]; }
+    const k = partes[partes.length-1];
+    if(merge && data && typeof data==='object'){ if(typeof alvo[k]!=='object'||alvo[k]===null) alvo[k]={}; Object.assign(alvo[k], data); }
+    else if(data === null) delete alvo[k];
+    else alvo[k] = data;
+  }
+  aoAtualizarSala();
+}
+function outroJ(s){
+  const js = (s && s.j) || {}; const meu = uid();
+  const k = Object.keys(js).find(u => u !== meu);
+  return k ? Object.assign({ u:k }, js[k]) : null;
+}
+function aoAtualizarSala(){
+  if(!SALA) return;
+  const s = SALA.espelho;
+  if(s === null){
+    if(!SALA.encerrada && !SALA.largou){ toast('A sala foi encerrada','🚪'); fecharSala(); show('home'); }
+    return;
+  }
+  if(!s) return;
+  if(!SALA.largou){
+    renderLobby();
+    if(s.status === 'jogando') iniciarCorridaPartida(s);
+  } else if(P && P.cfg && P.cfg.corrida && !P.fim){
+    recalcCorrida();
+  }
+}
+function renderLobby(){
+  if(!SALA || SALA.largou) return;
+  const s = SALA.espelho || {};
+  const js = s.j || {}; const meu = uid();
+  const arr = Object.entries(js).map(([u,j])=>({u,...j})).sort(a => a.papel==='dono' ? -1 : 1);
+  const temaN = s.palavras ? '✏️ Palavras personalizadas'
+    : s.tema ? ((TEMAS.find(t=>t.id===s.tema)||{}).emoji||'') + ' ' + ((TEMAS.find(t=>t.id===s.tema)||{}).nome||s.tema) : '…';
+  const slot = j => j
+    ? `<div class="lobby-slot on"><span class="avatar">${avatarSvg(j.a)}</span><b>${esc(j.n)}${j.u===meu?' <small>(você)</small>':''}</b><small>${j.papel==='dono'?'criou a sala':'entrou!'}</small></div>`
+    : `<div class="lobby-slot"><span class="avatar lobby-espera" style="opacity:.35">${avatarSvg('tatu')}</span><b style="color:var(--sub)">esperando…</b><small>manda o código!</small></div>`;
+  const cheia = arr.length >= 2;
+  const convite = `⚡ Bora uma corrida de caça-palavras AGORA?\n${temaN} · nível ${s.dif ? NIVEIS[s.dif].nome : ''}\nEntra aqui que eu te espero 👇\n${linkSala(SALA.code)}\n\nOu digita o código no app: ${SALA.code}`;
+  $('#lobby-corpo').innerHTML = `
+    <div class="codigo-caixa"><div class="cod">${SALA.code}</div><small>código da sala · toque para copiar</small></div>
+    <div class="lobby-jog">${slot(arr[0])}<div class="vs-meio" style="align-self:center">VS</div>${slot(arr[1])}</div>
+    <p style="text-align:center;color:var(--sub);font-weight:800;font-size:13px">${temaN}${s.dif ? ' · nível '+NIVEIS[s.dif].nome : ''}</p>
+    ${!cheia ? `<button class="btn-acao" id="lb-zap">🟢 Chamar no WhatsApp</button>` : ''}
+    ${SALA.dono
+      ? `<button class="btn-acao ouro" id="lb-largar" ${cheia?'':'disabled style="opacity:.5"'}>🚦 ${cheia ? 'Dar a largada!' : 'Esperando o segundo jogador…'}</button>`
+      : `<p style="text-align:center;color:var(--gold);font-weight:900;margin:14px 0" class="lobby-espera">${cheia ? '🚦 Aguardando a largada…' : 'Aguardando…'}</p>`}
+    <button class="btn-acao fantasma" id="lb-sair">Sair da sala</button>`;
+  $('.codigo-caixa').onclick = ()=> copiar(SALA.code);
+  const z = $('#lb-zap'); if(z) z.onclick = ()=> zap(convite);
+  const lg = $('#lb-largar');
+  if(lg && cheia) lg.onclick = async ()=>{
+    lg.disabled = true; lg.textContent = '🚦 Largando…';
+    try{ await fb('salas/'+SALA.code, { method:'PATCH', body: JSON.stringify({ status:'jogando', inicio:{'.sv':'timestamp'} }) }); }
+    catch{ lg.disabled = false; lg.textContent = '🚦 Dar a largada!'; toast('Sem conexão, tenta de novo','📡'); return; }
+    if(SALA.espelho){ SALA.espelho.status = 'jogando'; aoAtualizarSala(); }
+  };
+  $('#lb-sair').onclick = async ()=>{
+    const code = SALA.code, dono = SALA.dono;
+    SALA.encerrada = true; fecharSala();
+    try{ if(dono) await fb('salas/'+code, { method:'DELETE' }); else await fb(`salas/${code}/j/${uid()}`, { method:'DELETE' }); }catch{}
+    show('home');
+  };
+  show('lobby', false);
+}
+function iniciarCorridaPartida(s){
+  if(SALA.largou) return;
+  SALA.largou = true;
+  iniciarPartida({
+    modo:'corrida', nivel: s.dif, temaId: s.tema, palavrasCustom: s.palavras || undefined,
+    seed: s.seed, relogio: false, corrida: { code: SALA.code }
+  });
+  if(!P) { toast('Deu ruim ao montar o tabuleiro','😅'); return; }
+  P.remotas = new Set(); P.pendentes = {}; P.corridaDonos = {};
+  montarRacePill(s);
+  SALA.watch = setInterval(()=>{ if(P && !P.fim && P.elapsedMs > 300000) fimPartida(true); }, 1000);
+  countdown(()=>{ largadaTimer(); recalcCorrida(); });
+}
+function montarRacePill(s){
+  const o = outroJ(s);
+  $('#race-ele')?.remove();
+  const d = document.createElement('div');
+  d.className = 'pill race'; d.id = 'race-ele';
+  d.innerHTML = `<span class="avatar">${avatarSvg(o ? o.a : 'tatu')}</span><b id="race-pts">0</b>`;
+  $('.hud').appendChild(d);
+}
+function corridaAchei(norm, valor){
+  if(!SALA) return;
+  P.pendentes[norm] = Date.now();
+  fb(`salas/${SALA.code}/j/${uid()}/achadas/${norm}`, { method:'PUT', body: JSON.stringify({ t:{'.sv':'timestamp'}, p: valor }) }).catch(()=>{});
+  fb(`salas/${SALA.code}/j/${uid()}`, { method:'PATCH', body: JSON.stringify({ er: P.erros, po: P.usados }) }).catch(()=>{});
+}
+function corridaSair(){
+  if(!SALA) return;
+  fb(`salas/${SALA.code}/j/${uid()}`, { method:'PATCH', body: JSON.stringify({ saiu:true, fim:{'.sv':'timestamp'} }) }).catch(()=>{});
+  SALA.encerrada = true; fecharSala();
+}
+function corridaOwnership(s){
+  const own = {}; const js = (s && s.j) || {};
+  for(const [u,j] of Object.entries(js)){
+    for(const [norm,a] of Object.entries(j.achadas || {})){
+      const t = (a && a.t) || 9e15;
+      if(!own[norm] || t < own[norm].t || (t === own[norm].t && u < own[norm].u)) own[norm] = { u, t, p: (a && a.p) || 30 };
+    }
+  }
+  return own;
+}
+function corridaPlacar(){
+  const meu = uid();
+  const own = corridaOwnership(SALA ? SALA.espelho : null);
+  for(const [norm,t] of Object.entries((P && P.pendentes) || {})) if(!own[norm]) own[norm] = { u: meu, t: t + 1e13, p: E.valorPalavra(norm) };
+  let eu = 0, ele = 0, minhas = 0, dele = 0;
+  for(const o of Object.values(own)){ if(o.u === meu){ eu += o.p; minhas++; } else { ele += o.p; dele++; } }
+  return { eu, ele, minhas, dele, own };
+}
+function recalcCorrida(){
+  if(!P || !P.cfg.corrida || !SALA) return;
+  const meu = uid();
+  const s = SALA.espelho; if(!s) return;
+  const jsMe = s.j && s.j[meu];
+  for(const norm of Object.keys(P.pendentes)) if(jsMe && jsMe.achadas && jsMe.achadas[norm]) delete P.pendentes[norm];
+  const { eu, ele, dele, own } = corridaPlacar();
+  const o = outroJ(s);
+  let roubo = null;
+  for(const [norm, d] of Object.entries(own)){
+    if(P.restantes.has(norm)) marcarCorrida(norm, d.u === meu);
+    else if(P.corridaDonos[norm] === meu && d.u !== meu) roubo = norm;
+    P.corridaDonos[norm] = d.u;
+  }
+  repintarCorrida(o);
+  P.pontosPalavras = eu; atualizarPontosHud(); atualizarContador();
+  const rp = $('#race-pts'); if(rp) rp.textContent = ele;
+  if(roubo && o){ toast(`${esc(o.n)} pegou ${esc(P.achadas.get(roubo)?.palavra || roubo)} primeiro!`, '⚡'); Som.deles(); }
+  if(o && o.saiu && !SALA.avisoSaiu && !P.fim){
+    SALA.avisoSaiu = true;
+    toast(`${esc(o.n)} saiu da corrida`, '🚪', 'fechando com os pontos atuais');
+    setTimeout(()=>{ if(P && !P.fim) fimPartida(true); }, 1800);
+  }
+  if(P.restantes.size === 0 && !P.fim && !P.fimEmAndamento){ P.fimEmAndamento = true; setTimeout(()=>fimPartida(true), 450); }
+}
+function marcarCorrida(norm, meu){
+  const pos = P.board.posicoes.find(p => p.norm === norm);
+  if(!pos) return;
+  const cells = []; for(let i=0;i<norm.length;i++) cells.push({ x: pos.x + pos.dx*i, y: pos.y + pos.dy*i });
+  const bonita = P.restantes.get(norm) || norm;
+  P.restantes.delete(norm);
+  P.achadas.set(norm, { palavra: bonita, cells, cor: P.achadas.size });
+  if(!meu){ P.remotas.add(norm); Som.deles(); }
+}
+function repintarCorrida(o){
+  const meu = uid();
+  const g = $('#g-achadas'); g.innerHTML = '';
+  for(const [norm, a] of P.achadas){
+    const deles = P.corridaDonos[norm] && P.corridaDonos[norm] !== meu;
+    const l = capsula(a.cells, PALETA[a.cor % PALETA.length], g, deles ? .34 : .5);
+    if(deles) l.setAttribute('stroke-dasharray', `${P.cs*.8} ${P.cs*.4}`);
+  }
+  $$('#chips .chip').forEach(ch => {
+    const norm = ch.dataset.w;
+    const a = P.achadas.get(norm);
+    if(!a){ ch.className = 'chip'; ch.style.background=''; ch.style.borderColor=''; return; }
+    const deles = P.corridaDonos[norm] && P.corridaDonos[norm] !== meu;
+    ch.className = 'chip achada' + (deles ? ' deles' : '');
+    ch.style.background = PALETA[a.cor % PALETA.length] + (deles ? '2e' : '55');
+    ch.style.borderColor = deles ? PALETA[a.cor % PALETA.length] : 'transparent';
+    ch.innerHTML = esc(a.palavra) + (deles && o ? ` <span class="quem">⚡${esc(String(o.n||'').slice(0,7))}</span>` : '');
+  });
+}
+async function fluxoCorridaFim(res, snap){
+  const code = SALA ? SALA.code : null;
+  if(!code){ show('home'); return; }
+  fb(`salas/${code}/j/${uid()}`, { method:'PATCH', body: JSON.stringify({ fim:{'.sv':'timestamp'}, er: P.erros, po: P.usados, t: res.t }) }).catch(()=>{});
+  $('#comparacao-corpo').innerHTML = `<div class="centro-carrega"><span class="spin"></span><br><br>Fechando a corrida…</div>`;
+  show('comparacao');
+  await new Promise(r => {
+    let esperou = 0;
+    const iv = setInterval(async ()=>{
+      esperou += 400;
+      if(!SALA){ clearInterval(iv); r(); return; }
+      if(!SALA.es) await pollSala();
+      const o = outroJ(SALA.espelho);
+      if((o && (o.fim || o.saiu)) || esperou > 6000){ clearInterval(iv); r(); }
+    }, 400);
+  });
+  const s = (SALA && SALA.espelho) || {};
+  const js = s.j || {}; const meu = uid();
+  const { own } = corridaPlacar();
+  const pts = {}, wcount = {};
+  for(const o of Object.values(own)){ pts[o.u] = (pts[o.u]||0) + o.p; wcount[o.u] = (wcount[o.u]||0) + 1; }
+  const ids = Object.keys(js).sort(a => (js[a].papel==='dono') ? -1 : 1);
+  const jog = u => ({ n: js[u].n, a: js[u].a, p: pts[u]||0, w: wcount[u]||0, t: js[u].t || res.t, e: js[u].er||0, po: js[u].po||0 });
+  const d = { tema: s.tema, dif: s.dif, palavras: s.palavras || null, criador: jog(ids[0]), rival: ids[1] ? jog(ids[1]) : { n:'?', a:'tatu', p:0, w:0, t:res.t, e:0, po:0 } };
+  const meuPapel = js[meu] && js[meu].papel==='dono' ? 'criador' : 'rival';
+  // stats + h2h
+  const r = resultadoDesafio(d);
+  const st = LS.get('stats', {});
+  if(r === meuPapel) st.corridaV = (st.corridaV||0) + 1;
+  LS.set('stats', st);
+  const ele = meuPapel==='criador' ? d.rival : d.criador;
+  if(ele && ele.n !== '?'){
+    const h = LS.get('h2h', {}); const k = ele.n.trim();
+    const oo = h[k] || { v:0, d:0, e:0 };
+    oo[r==='empate' ? 'e' : (r===meuPapel ? 'v' : 'd')]++;
+    oo.avatar = ele.a; oo.ult = Date.now(); h[k] = oo; LS.set('h2h', h);
+  }
+  checarConquistas();
+  renderComparacao(code, d, meuPapel, snap, false);
+  $('#comparacao-titulo').textContent = '⚡ Resultado da corrida';
+  const rev = $('#cmp-revanche');
+  if(rev) rev.onclick = ()=> criarSala({ modo:'corrida', nivel: d.dif, temaId: d.tema, palavrasCustom: d.palavras || undefined, seed: (Math.random()*0xFFFFFFFF)>>>0 });
+  const zapb = $('#cmp-zap');
+  if(zapb){
+    const venc = r==='empate' ? null : (r==='criador' ? d.criador : d.rival);
+    zapb.onclick = ()=> zap(`⚡ ${r==='empate' ? 'Empate' : venc.n+' venceu'} na corrida de caça-palavras!\n${esc(d.criador.n)} ${d.criador.p} × ${d.rival.p} ${esc(d.rival.n)}\n\nBora jogar também? ${APP.url}`);
+  }
+  // limpeza (dono apaga a sala; ambos já têm tudo local)
+  if(SALA && SALA.dono){
+    const cc = code;
+    setTimeout(()=> fb('salas/'+cc, { method:'DELETE' }).catch(()=>{}), 2500);
+    LS.set('salas', LS.get('salas',[]).filter(x=>x.code!==cc));
+  }
+  SALA && (SALA.encerrada = true);
+  fecharSala();
+}
+Som.deles = function(){ this.tone(340,.12,'triangle',.12); this.tone(255,.14,'triangle',.1,.07); };
+
+/* ---------- código universal (desafio ou sala) ---------- */
+$('#btn-corrida').onclick = ()=> renderSetup('corrida');
+$('#btn-abrir-codigo').onclick = async ()=>{
+  const c = $('#input-codigo').value;
+  const av = $('#codigo-aviso');
+  if(c.length < 6){ av.textContent = 'O código tem 6 letras/números.'; av.style.display=''; return; }
+  av.textContent = '🔎 Procurando…'; av.style.display='';
+  try{
+    const d = await fbGet('desafios/'+c);
+    if(d){ fecharVeus(); abrirDesafio(c); return; }
+    const s = await fbGet('salas/'+c);
+    if(s){ fecharVeus(); entrarSala(c); return; }
+    av.textContent = 'Não achei nada com esse código. Confere com seu amigo!';
+  }catch{ av.textContent = '📡 Sem conexão. Tenta de novo.'; }
+};
+
+/* ---------- conquistas novas + regras + perfil ---------- */
+CONQUISTAS.push(
+  { id:'corrida1',  e:'⚡', t:'Ligeiro',      d:'Vença uma corrida ao vivo',              f:s=>(s.corridaV||0)>=1 },
+  { id:'sobre5',    e:'💀', t:'Sobrevivente', d:'Chegue à rodada 5 na Sobrevivência',     f:s=>(s.sobreRodada||0)>=5 },
+  { id:'detetive1', e:'🕵️', t:'Detetive',     d:'Feche um caso no modo Detetive',         f:s=>!!s.detetiveOk }
+);
+const _renderRegras = renderRegras;
+renderRegras = function(){
+  _renderRegras();
+  $('#regras-corpo').insertAdjacentHTML('beforeend', `
+    <h4>⚡ Corrida ao vivo</h4>
+    <p>Os dois no <b>mesmo tabuleiro, ao mesmo tempo</b>, cada um no seu celular. Você cria a sala, manda o código, o amigo entra e o dono dá a largada. Cada palavra vale pra quem achar primeiro; a palavra do adversário aparece tracejada no seu tabuleiro. Vence quem somar mais pontos. Precisa de internet nos dois lados.</p>
+    <h4>💀 Sobrevivência</h4>
+    <p>Rodadas seguidas de tabuleiros pequenos com tempo caindo (começa em 50s e vai até 22s). Ache tudo pra avançar; sobrou tempo, vira bônus (+2 por segundo). A cada 3 rodadas você ganha uma 🔍 lupa. Vale recorde!</p>
+    <h4>🕵️ Detetive</h4>
+    <p>Sem lista de palavras: só a <b>pista</b> e o número de letras. Exemplo: "O rei da selva (4)". Decifre e ache no tabuleiro. Escolha o nível normalmente; a lupa é sua amiga.</p>`);
+};
+
+/* ---------- manutenção em segundo plano ---------- */
+setTimeout(async function manutencao(){
+  if(!navigator.onLine) return;
+  // apaga salas minhas antigas
+  const minhas = LS.get('salas', []); const agora = Date.now(); const fica = [];
+  for(const sl of minhas){
+    if(agora - sl.ts > 3600e3) fb('salas/'+sl.code, { method:'DELETE' }).catch(()=>{});
+    else fica.push(sl);
+  }
+  LS.set('salas', fica);
+  // desafios pendentes respondidos?
+  const l = meusLista(); let novos = 0;
+  for(const e of l.slice(0, 6)){
+    if(e.papel !== 'criador' || (e.d && e.d.rival)) continue;
+    try{
+      const d = await fbGet('desafios/'+e.code);
+      if(d && d.rival){ concluirEntrada(e.code, d, 'criador'); novos++; }
+    }catch{}
+  }
+  if(novos){ toast(`${novos} desafio${novos>1?'s':''} respondido${novos>1?'s':''}!`, '🎉', 'veja em Meus desafios', 'conquista'); Som.vitoria(); }
+}, 2200);
 
 </script>
 </body>
