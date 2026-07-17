@@ -5,7 +5,7 @@
    - estáticos (manifesto, ícones): cache primeiro, atualiza por baixo.
    - Firebase e qualquer coisa de fora da origem: NÃO intercepta (desafios e diário intactos).
    Ao mudar ícones/manifesto, suba o número do CACHE pra forçar atualização. */
-const CACHE = 'caca-v2';
+const CACHE = 'caca-v3';
 const SHELL = [
   './',
   './index.html',
@@ -63,4 +63,12 @@ self.addEventListener('fetch', e => {
       return cached || net;
     })
   );
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    for (const c of list) { if ('focus' in c) return c.focus(); }
+    return clients.openWindow('./');
+  }));
 });

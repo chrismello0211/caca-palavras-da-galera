@@ -364,6 +364,33 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
 .chip .len{background:rgba(255,255,255,.12);border-radius:8px;padding:1px 7px;font-size:11px;font-weight:900;flex:none}
 .pista-txt{min-width:0}
 
+/* ---------- v3 ---------- */
+.tipos{grid-template-columns:repeat(2,1fr)}
+.mini-chips{display:flex;gap:8px;margin-top:10px}
+.mini-chip{flex:1;background:rgba(255,255,255,.07);border:2px solid var(--line);border-radius:var(--rs);padding:8px 4px;font-weight:800;font-size:12.5px;color:var(--txt);text-align:center}
+.mini-chip.sel{border-color:var(--gold);background:rgba(251,191,36,.12)}
+.salvos{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.salvo{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1.5px solid var(--line2);border-radius:999px;padding:6px 8px 6px 12px;font-weight:800;font-size:12.5px;color:var(--txt)}
+.salvo .x{background:rgba(255,255,255,.12);border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.news-item{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.news-item:last-child{border-bottom:none}
+.news-item>span{font-size:24px;flex:none;line-height:1.1}
+.news-item b{display:block;font-family:'Baloo 2';font-size:15px}
+.news-item small{color:var(--sub);font-weight:700;font-size:12.5px;line-height:1.4}
+.onboard{position:fixed;inset:0;z-index:95;background:linear-gradient(170deg,#101744,#0a0e26 65%);display:flex;flex-direction:column;justify-content:center;padding:26px 22px calc(26px + var(--safe-b))}
+.ob-card{text-align:center;padding:0 6px}
+.ob-emoji{font-size:76px;display:block;animation:flutua 2.4s ease-in-out infinite}
+.ob-card h2{font-family:'Baloo 2';font-weight:800;font-size:27px;margin:14px 0 8px}
+.ob-card p{color:var(--sub);font-weight:800;font-size:15.5px;line-height:1.5;max-width:320px;margin:0 auto}
+.ob-dots{display:flex;gap:8px;justify-content:center;margin:26px 0 18px}
+.ob-dots i{width:8px;height:8px;border-radius:50%;background:var(--line2)}
+.ob-dots i.on{background:var(--gold);width:22px;border-radius:6px}
+.ob-btns{display:flex;gap:10px}
+.ob-btns .btn-acao{margin:0;flex:1}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -545,6 +572,12 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
   <input class="campo" id="input-codigo" maxlength="6" placeholder="EX.: K7PMX2" autocomplete="off" autocapitalize="characters" style="text-align:center;letter-spacing:6px;font-family:'Baloo 2';font-size:24px">
   <div class="aviso-net" id="codigo-aviso"></div>
   <button class="btn-acao azul" id="btn-abrir-codigo">Abrir desafio</button>
+</div></div>
+
+<div class="veu" id="veu-novidades"><div class="modal">
+  <h3 id="novidades-titulo">✨ Novidades <button class="fecha" data-fecha>✕</button></h3>
+  <div id="novidades-corpo"></div>
+  <button class="btn-acao ouro" data-fecha style="margin-top:14px">Bora! 🚀</button>
 </div></div>
 
 <div class="veu" id="veu-share"><div class="modal">
@@ -835,7 +868,7 @@ const APP = {
   nome: 'Caça-Palavras da Galera',
   url: 'https://chrismello0211.github.io/caca-palavras-da-galera/',
   fb: 'https://bolao-da-copa-8be20-default-rtdb.firebaseio.com/bolao/caca',
-  versao: 'v2026.07.10.2'
+  versao: 'v2026.07.17'
 };
 const E = CGE, TEMAS = CG_TEMAS;
 const NIVEIS = {
@@ -880,7 +913,7 @@ const AVATARES = {
   mico:{ nome:'Mico', svg:`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#d97706"/><path d="M6 30 q4 -18 16 -20 l2 10z" fill="#b45309"/><path d="M58 30 q-4 -18 -16 -20 l-2 10z" fill="#b45309"/><path d="M14 14 q6 -8 14 -6" stroke="#f59e0b" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M50 14 q-6 -8 -14 -6" stroke="#f59e0b" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="32" cy="34" rx="15" ry="16" fill="#fcd9a8"/><circle cx="25" cy="30" r="3.2" fill="#3b2404"/><circle cx="39" cy="30" r="3.2" fill="#3b2404"/><circle cx="26.1" cy="28.9" r="1" fill="#fff"/><circle cx="40.1" cy="28.9" r="1" fill="#fff"/><ellipse cx="32" cy="38" rx="2.6" ry="2" fill="#7c4a12"/><path d="M27 44 q5 3.6 10 0" stroke="#7c4a12" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`},
   tatu:{ nome:'Tatu', svg:`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#78716c"/><path d="M4 26 h56 v6 H4z M4 36 h56 v6 H4z" fill="#57534e" opacity=".8"/><path d="M14 10 l6 10 -10 2z" fill="#57534e"/><path d="M50 10 l-6 10 10 2z" fill="#57534e"/><ellipse cx="32" cy="40" rx="13" ry="11" fill="#d6d3d1"/><circle cx="25" cy="28" r="3" fill="#292524"/><circle cx="39" cy="28" r="3" fill="#292524"/><circle cx="26" cy="27" r="1" fill="#fff"/><circle cx="40" cy="27" r="1" fill="#fff"/><ellipse cx="32" cy="38" rx="3.4" ry="2.6" fill="#44403c"/><path d="M27 45 q5 3 10 0" stroke="#44403c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`}
 };
-const avatarSvg = id => (AVATARES[id]||AVATARES.capivara).svg;
+let avatarSvg = id => (AVATARES[id]||AVATARES.capivara).svg;
 function getPerfil(){ return { nome: LS.get('nome','Jogador'), avatar: LS.get('avatar', Object.keys(AVATARES)[Math.floor(Math.random()*8)]) }; }
 function setPerfil(p){ if(p.nome!==undefined) LS.set('nome', p.nome); if(p.avatar!==undefined) LS.set('avatar', p.avatar); renderHomeDyn(); }
 
@@ -1047,6 +1080,7 @@ $('#btn-comecar').onclick = ()=>{
     cfg.duelo = { j: 1, nomes: [n1, n2], r1: null };
   }
   cfg.seed = (Math.random()*0xFFFFFFFF)>>>0;
+  if(tipo==='robo'){ cfg.modo='corrida'; cfg.corrida = { bot: { nivel: setupCtx.robo || 'esperto' } }; iniciarCorridaBot(cfg); return; }
   if(setupCtx.modo==='corrida'){ criarSala(cfg); return; }
   iniciarPartida(cfg);
 };
@@ -1224,7 +1258,15 @@ function redesenharAchadas(){
     if(P.fim || cells.length < 2) return;
     const hit = E.validarSelecao(P.board.grade, cells, P.restantes);
     if(hit) achouPalavra(hit.norm, cells);
-    else erroSelecao(cells);
+    else {
+      const ja = selecaoJaAchada(cells);
+      if(ja){
+        if(P.cfg.corrida && P.corridaDonos && P.corridaDonos[ja] && P.corridaDonos[ja] !== uid()){
+          toast('Já levaram essa!','⚡'); if(Som.deles) Som.deles();
+        } else toast('Essa você já achou','✔️');
+        haptic(15);
+      } else erroSelecao(cells);
+    }
   };
   wrap.addEventListener('pointerup', solta);
   wrap.addEventListener('pointercancel', ()=>{ if(P){ P.sel=null; $('#g-live').innerHTML=''; } });
@@ -1232,6 +1274,13 @@ function redesenharAchadas(){
 function desenharLive(){
   const g = $('#g-live'); g.innerHTML = '';
   if(P.sel) capsula(P.sel.cells, '#fbbf24', g, .48);
+}
+function selecaoJaAchada(cells){
+  if(!P || cells.length < 3) return null;
+  let s = ''; for(const c of cells) s += P.board.grade[c.y][c.x];
+  if(P.achadas.has(s)) return s;
+  const r = s.split('').reverse().join('');
+  return P.achadas.has(r) ? r : null;
 }
 function erroSelecao(cells){
   if(cells.length < 3) return;
@@ -1450,9 +1499,14 @@ function fimPartida(completa){
     pontos: P.pontosPalavras + bonus, poderes: P.usados, completa
   };
   if(m==='corrida'){
-    const cp = corridaPlacar();
-    res.pontos = cp.eu; res.base = cp.eu; res.streak = 0;
-    res.n = cp.minhas;
+    if(P.cfg.corrida && P.cfg.corrida.bot){
+      res.n = P.achadas.size - (P.remotas ? P.remotas.size : 0);
+      res.base = res.pontos; res.streak = 0;
+    } else {
+      const cp = corridaPlacar();
+      res.pontos = cp.eu; res.base = cp.eu; res.streak = 0;
+      res.n = cp.minhas;
+    }
   }
   if(completa){
     if(m==='sobre'){ Som.streak(); haptic(25); }
@@ -1873,6 +1927,10 @@ async function fluxoDiarioFim(res, snap){
   extra.className = 'btn-acao fantasma'; extra.textContent = '🌍 Ver ranking de hoje';
   extra.onclick = ()=> telaDiario();
   $('#r-denovo').replaceWith(extra);
+  const txt = document.createElement('button');
+  txt.className = 'btn-acao'; txt.textContent = '💬 Mandar resultado no zap';
+  txt.onclick = ()=> zap(diarioTexto(res, di, info));
+  extra.before(txt);
 }
 
 /* ---------- duelo local ---------- */
@@ -1970,6 +2028,9 @@ function renderAjustes(){
       <button class="switch ${Som.on?'on':''}" id="sw-som"></button></div>
     <div class="linha-config"><span><b>📳 Vibração</b><small>Toque ao acertar (Android)</small></span>
       <button class="switch ${LS.get('vibra',true)?'on':''}" id="sw-vibra"></button></div>
+    <div class="linha-config"><span><b>🔔 Avisos</b><small id="notif-sub">Amigo entrou na sala, desafio respondido</small></span>
+      <button class="switch" id="sw-notif"></button></div>
+    <button class="btn-acao fantasma" id="aj-instalar" style="display:none">📲 Instalar o aplicativo</button>
     <button class="btn-acao fantasma" id="aj-perfil" style="margin-top:14px">👤 Nome, bicho e conquistas</button>
     <button class="btn-acao fantasma" id="aj-regras">❓ Como funciona</button>
     <button class="btn-acao fantasma" id="aj-apagar" style="color:var(--red)">🗑️ Apagar meus dados deste aparelho</button>
@@ -1978,6 +2039,7 @@ function renderAjustes(){
   $('#sw-vibra').onclick = function(){ const v = !LS.get('vibra',true); LS.set('vibra', v); this.classList.toggle('on', v); haptic(20); };
   $('#aj-perfil').onclick = ()=>{ fecharVeus(); telaPerfil(); };
   $('#aj-regras').onclick = ()=>{ fecharVeus(); renderRegras(); abrirVeu('regras'); };
+  if(typeof notifAjustesBind === 'function') notifAjustesBind();
   $('#aj-apagar').onclick = ()=>{
     if(!confirm('Apagar nome, estatísticas, conquistas e histórico de desafios deste aparelho?')) return;
     Object.keys(localStorage).filter(k=>k.startsWith('cg_')).forEach(k=>localStorage.removeItem(k));
@@ -2259,9 +2321,11 @@ const DET_MAP = {}; for(const d of CG_DET) DET_MAP[E.norm(d.p)] = d.c;
 setupCtx.tipo = setupCtx.tipo || 'classico';
 const TIPOS = {
   classico:      { e:'🎯', nome:'Clássico',      d:'nível e tema' },
+  robo:          { e:'🤖', nome:'Robô',          d:'corrida offline' },
   sobrevivencia: { e:'💀', nome:'Sobrevivência', d:'tempo caindo' },
   detetive:      { e:'🕵️', nome:'Detetive',      d:'só as pistas' }
 };
+setupCtx.robo = setupCtx.robo || 'esperto';
 function setupTipoRender(modo){
   const mostra = modo === 'solo';
   $('#rot-tipo').style.display = mostra ? '' : 'none';
@@ -2280,7 +2344,7 @@ function setupTipoRender(modo){
 }
 function aplicarSetupVis(modo){
   const tipo = modo==='solo' ? setupCtx.tipo : 'classico';
-  const temTema = tipo==='classico';
+  const temTema = tipo==='classico' || tipo==='robo';
   const temNivel = tipo!=='sobrevivencia';
   $('#rot-nivel').style.display = temNivel ? '' : 'none';
   $('#setup-niveis').style.display = temNivel ? '' : 'none';
@@ -2299,11 +2363,26 @@ function aplicarSetupVis(modo){
     info.style.display = '';
     info.innerHTML = `<b style="font-family:'Baloo 2';font-size:16px">🕵️ Como funciona</b>
       <p style="color:var(--sub);font-weight:800;font-size:13px;margin-top:6px">Nada de lista de palavras: você recebe só as pistas e o número de letras. Decifre e ache no tabuleiro. A 🔍 lupa ajuda quando travar.</p>`;
+  } else if(modo==='solo' && tipo==='robo'){
+    info.style.display = '';
+    info.innerHTML = `<b style="font-family:'Baloo 2';font-size:16px">🤖 Corrida contra o robô</b>
+      <p style="color:var(--sub);font-weight:800;font-size:13px;margin-top:6px">Mesmo tabuleiro, você contra a máquina, sem precisar de internet. Cada palavra vale pra quem achar primeiro.</p>
+      <div class="mini-chips" id="robo-chips"></div>`;
+    const RB = { deboa:'😴 De boa', esperto:'🙂 Esperto', craque:'🤓 Craque' };
+    const box = $('#robo-chips');
+    for(const [id,rot] of Object.entries(RB)){
+      const b = document.createElement('button');
+      b.className = 'mini-chip' + (id===setupCtx.robo ? ' sel' : '');
+      b.textContent = rot;
+      b.onclick = ()=>{ setupCtx.robo = id; $$('#robo-chips .mini-chip').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); };
+      box.appendChild(b);
+    }
   } else if(modo==='corrida'){
     info.style.display = '';
     info.innerHTML = `<b style="font-family:'Baloo 2';font-size:16px">⚡ Como funciona</b>
       <p style="color:var(--sub);font-weight:800;font-size:13px;margin-top:6px">Você cria a sala, manda o código e os dois jogam o mesmo tabuleiro ao mesmo tempo. Cada palavra vale pra quem achar primeiro. Precisa de internet nos dois celulares.</p>`;
   } else info.style.display = 'none';
+  montarTemasSalvos();
 }
 
 /* ---------- overlay de contagem ---------- */
@@ -2474,17 +2553,25 @@ async function pollSala(){
 function aplicarEvento(path, data, merge){
   if(!SALA) return;
   const partes = String(path||'/').split('/').filter(Boolean);
-  if(partes.length === 0){
-    if(merge && data && typeof data==='object') SALA.espelho = Object.assign(SALA.espelho||{}, data);
-    else SALA.espelho = data;
+  const setEm = (base, ps, valor)=>{
+    let alvo = base;
+    for(let i=0;i<ps.length-1;i++){
+      if(typeof alvo[ps[i]] !== 'object' || alvo[ps[i]] === null) alvo[ps[i]] = {};
+      alvo = alvo[ps[i]];
+    }
+    const k = ps[ps.length-1];
+    if(valor === null) delete alvo[k]; else alvo[k] = valor;
+  };
+  if(partes.length === 0 && !(merge && data && typeof data==='object')){
+    SALA.espelho = data;
   } else {
     if(!SALA.espelho) SALA.espelho = {};
-    let alvo = SALA.espelho;
-    for(let i=0;i<partes.length-1;i++){ if(typeof alvo[partes[i]] !== 'object' || alvo[partes[i]]===null) alvo[partes[i]] = {}; alvo = alvo[partes[i]]; }
-    const k = partes[partes.length-1];
-    if(merge && data && typeof data==='object'){ if(typeof alvo[k]!=='object'||alvo[k]===null) alvo[k]={}; Object.assign(alvo[k], data); }
-    else if(data === null) delete alvo[k];
-    else alvo[k] = data;
+    if(merge && data && typeof data==='object'){
+      // patch: chaves podem ser compostas ("j/uid/achadas") num update multi-caminho
+      for(const [k,v] of Object.entries(data)) setEm(SALA.espelho, partes.concat(k.split('/').filter(Boolean)), v);
+    } else {
+      setEm(SALA.espelho, partes, data);
+    }
   }
   aoAtualizarSala();
 }
@@ -2497,16 +2584,43 @@ function aoAtualizarSala(){
   if(!SALA) return;
   const s = SALA.espelho;
   if(s === null){
-    if(!SALA.encerrada && !SALA.largou){ toast('A sala foi encerrada','🚪'); fecharSala(); show('home'); }
+    if(!SALA.encerrada){
+      SALA.encerrada = true;
+      const rev = $('#cmp-revanche');
+      if(rev){ rev.disabled = true; rev.style.opacity = .5; rev.textContent = '🚪 Sala encerrada'; }
+      if(!SALA.largou){ toast('A sala foi encerrada','🚪'); fecharSala(); show('home'); }
+      else fecharSala();
+    }
     return;
   }
   if(!s) return;
   if(!SALA.largou){
     renderLobby();
+    notifLobby(s);
     if(s.status === 'jogando') iniciarCorridaPartida(s);
+  } else if(s.status === 'lobby'){
+    voltarProLobby();
   } else if(P && P.cfg && P.cfg.corrida && !P.fim){
     recalcCorrida();
   }
+}
+function voltarProLobby(){
+  if(!SALA || !SALA.largou) return;
+  SALA.largou = false; SALA.avisoSaiu = false; SALA.jAntes = undefined;
+  if(P){ clearInterval(P.timer); P.fim = true; }
+  clearInterval(SALA.watch);
+  toast('Revanche! De volta pro lobby','🔁'); Som.poder(); haptic(20);
+  renderLobby();
+}
+function notifLobby(s){
+  const n = Object.keys((s && s.j) || {}).length;
+  if(SALA.jAntes === undefined){ SALA.jAntes = n; return; }
+  if(n > SALA.jAntes && SALA.dono){
+    const o = outroJ(s);
+    NOTIF.fire('⚡ ' + esc(o ? o.n : 'Alguém') + ' entrou na sala!', 'Volta aqui e dá a largada 🚦', 'sala');
+  }
+  if(s.status === 'jogando') NOTIF.fire('🚦 Largada dada!', 'A corrida começou, corre!', 'sala');
+  SALA.jAntes = n;
 }
 function renderLobby(){
   if(!SALA || SALA.largou) return;
@@ -2650,8 +2764,10 @@ function repintarCorrida(o){
   });
 }
 async function fluxoCorridaFim(res, snap){
+  if(P.cfg.corrida && P.cfg.corrida.bot) return fluxoRoboFim(res, snap);
   const code = SALA ? SALA.code : null;
   if(!code){ show('home'); return; }
+  NOTIF.clear('sala');
   fb(`salas/${code}/j/${uid()}`, { method:'PATCH', body: JSON.stringify({ fim:{'.sv':'timestamp'}, er: P.erros, po: P.usados, t: res.t }) }).catch(()=>{});
   $('#comparacao-corpo').innerHTML = `<div class="centro-carrega"><span class="spin"></span><br><br>Fechando a corrida…</div>`;
   show('comparacao');
@@ -2690,20 +2806,41 @@ async function fluxoCorridaFim(res, snap){
   renderComparacao(code, d, meuPapel, snap, false);
   $('#comparacao-titulo').textContent = '⚡ Resultado da corrida';
   const rev = $('#cmp-revanche');
-  if(rev) rev.onclick = ()=> criarSala({ modo:'corrida', nivel: d.dif, temaId: d.tema, palavrasCustom: d.palavras || undefined, seed: (Math.random()*0xFFFFFFFF)>>>0 });
+  if(rev){
+    if(SALA && SALA.encerrada){ rev.disabled = true; rev.style.opacity = .5; rev.textContent = '🚪 Sala encerrada'; }
+    else rev.onclick = ()=> revancheCorrida();
+  }
+  $$('#tela-comparacao [data-home]').forEach(b => b.addEventListener('click', sairDaCorridaFinal, { once: true }));
   const zapb = $('#cmp-zap');
   if(zapb){
     const venc = r==='empate' ? null : (r==='criador' ? d.criador : d.rival);
     zapb.onclick = ()=> zap(`⚡ ${r==='empate' ? 'Empate' : venc.n+' venceu'} na corrida de caça-palavras!\n${esc(d.criador.n)} ${d.criador.p} × ${d.rival.p} ${esc(d.rival.n)}\n\nBora jogar também? ${APP.url}`);
   }
-  // limpeza (dono apaga a sala; ambos já têm tudo local)
-  if(SALA && SALA.dono){
-    const cc = code;
-    setTimeout(()=> fb('salas/'+cc, { method:'DELETE' }).catch(()=>{}), 2500);
-    LS.set('salas', LS.get('salas',[]).filter(x=>x.code!==cc));
+  // sala fica viva pra revanche; sai de vez pelo botão Início (ou limpeza de 1h)
+}
+async function revancheCorrida(){
+  if(!SALA || SALA.encerrada) return;
+  const s = SALA.espelho || {}; const js = s.j || {};
+  const upd = { status: 'lobby', inicio: null, seed: (Math.random()*0xFFFFFFFF)>>>0 };
+  for(const u of Object.keys(js)){
+    upd[`j/${u}/achadas`] = null; upd[`j/${u}/fim`] = null; upd[`j/${u}/saiu`] = null;
+    upd[`j/${u}/er`] = null; upd[`j/${u}/po`] = null; upd[`j/${u}/t`] = null;
   }
-  SALA && (SALA.encerrada = true);
-  fecharSala();
+  const rev = $('#cmp-revanche'); if(rev){ rev.disabled = true; rev.textContent = '🔁 Chamando…'; }
+  try{ await fb('salas/'+SALA.code, { method:'PATCH', body: JSON.stringify(upd) }); }
+  catch{ toast('Sem conexão pra revanche','📡'); if(rev){ rev.disabled=false; rev.textContent='🔁 Revanche'; } return; }
+  const jNovo = {};
+  for(const [u,j] of Object.entries(js)) jNovo[u] = { n:j.n, a:j.a, papel:j.papel, ping:j.ping };
+  aplicarEvento('/', Object.assign({}, s, { status:'lobby', inicio:null, seed:upd.seed, j:jNovo }), false);
+}
+function sairDaCorridaFinal(){
+  if(!SALA) return;
+  const code = SALA.code, dono = SALA.dono;
+  SALA.encerrada = true; fecharSala();
+  if(dono){
+    fb('salas/'+code, { method:'DELETE' }).catch(()=>{});
+    LS.set('salas', LS.get('salas',[]).filter(x=>x.code!==code));
+  } else fb(`salas/${code}/j/${uid()}`, { method:'DELETE' }).catch(()=>{});
 }
 Som.deles = function(){ this.tone(340,.12,'triangle',.12); this.tone(255,.14,'triangle',.1,.07); };
 
@@ -2742,26 +2879,359 @@ renderRegras = function(){
 };
 
 /* ---------- manutenção em segundo plano ---------- */
-setTimeout(async function manutencao(){
-  if(!navigator.onLine) return;
-  // apaga salas minhas antigas
+async function checarPendentes(){
+  if(!navigator.onLine) return 0;
+  const l = meusLista(); let novos = 0, pend = 0; const nomes = [];
+  for(const e of l.slice(0, 8)){
+    if(e.papel !== 'criador' || (e.d && e.d.rival)) continue;
+    pend++;
+    try{
+      const d = await fbGet('desafios/'+e.code);
+      if(d && d.rival){ concluirEntrada(e.code, d, 'criador'); novos++; nomes.push(d.rival.n); }
+    }catch{}
+  }
+  if(novos){
+    if(document.hidden) NOTIF.fire('🎉 Desafio respondido!', esc(nomes[0]||'Alguém') + ' jogou seu desafio. Vem ver o placar!', 'desafio');
+    else { toast(`${novos} desafio${novos>1?'s':''} respondido${novos>1?'s':''}!`, '🎉', 'veja em Meus desafios', 'conquista'); Som.vitoria(); }
+  }
+  return pend - novos;
+}
+setTimeout(async function manutencaoV3(){
   const minhas = LS.get('salas', []); const agora = Date.now(); const fica = [];
   for(const sl of minhas){
     if(agora - sl.ts > 3600e3) fb('salas/'+sl.code, { method:'DELETE' }).catch(()=>{});
     else fica.push(sl);
   }
   LS.set('salas', fica);
-  // desafios pendentes respondidos?
-  const l = meusLista(); let novos = 0;
-  for(const e of l.slice(0, 6)){
-    if(e.papel !== 'criador' || (e.d && e.d.rival)) continue;
+  const sobraram = await checarPendentes();
+  if(sobraram > 0 && !window.__pendIv){
+    window.__pendIv = setInterval(async ()=>{
+      const s = await checarPendentes();
+      if(s <= 0){ clearInterval(window.__pendIv); window.__pendIv = null; }
+    }, 90000);
+  }
+}, 2200);
+
+/* ============ v3 ============ */
+
+/* ---------- avisos locais (sem servidor) ---------- */
+const NOTIF = {
+  ok(){ return 'Notification' in window && 'serviceWorker' in navigator; },
+  granted(){ return NOTIF.ok() && Notification.permission === 'granted'; },
+  pref(){ return LS.get('notif', true) !== false; },
+  can(){ return NOTIF.granted() && NOTIF.pref(); },
+  estado(){
+    if(!NOTIF.ok()) return 'sem';
+    if(Notification.permission === 'denied') return 'negado';
+    if(!NOTIF.granted()) return 'pedir';
+    return NOTIF.pref() ? 'on' : 'off';
+  },
+  async ask(){
+    if(!NOTIF.ok()){ toast('Este navegador não tem avisos','🔕','instale o app na tela de início'); return false; }
     try{
-      const d = await fbGet('desafios/'+e.code);
-      if(d && d.rival){ concluirEntrada(e.code, d, 'criador'); novos++; }
+      const r = await Notification.requestPermission();
+      if(r === 'granted'){ LS.set('notif', true); toast('Avisos ativados!','🔔'); return true; }
+      toast('Permissão negada no navegador','🔕'); return false;
+    }catch{ return false; }
+  },
+  async fire(titulo, corpo, tag){
+    try{
+      if(!NOTIF.can() || !document.hidden) return;
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(reg) reg.showNotification(titulo, { body: corpo, icon: 'icon-192.png', badge: 'icon-192.png', tag: tag || 'caca', renotify: true });
+    }catch{}
+  },
+  async clear(tag){
+    try{
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(!reg) return;
+      (await reg.getNotifications(tag ? { tag } : {})).forEach(n => n.close());
     }catch{}
   }
-  if(novos){ toast(`${novos} desafio${novos>1?'s':''} respondido${novos>1?'s':''}!`, '🎉', 'veja em Meus desafios', 'conquista'); Som.vitoria(); }
-}, 2200);
+};
+function notifAjustesBind(){
+  const sw = $('#sw-notif'), sub = $('#notif-sub');
+  if(!sw) return;
+  const pintar = ()=>{
+    const e = NOTIF.estado();
+    sw.classList.toggle('on', e === 'on');
+    sub.textContent = e === 'sem' ? 'Sem suporte aqui. Instale o app na tela de início.'
+      : e === 'negado' ? 'Bloqueado nas configurações do navegador'
+      : 'Amigo entrou na sala, desafio respondido';
+  };
+  pintar();
+  sw.onclick = async ()=>{
+    const e = NOTIF.estado();
+    if(e === 'on') LS.set('notif', false);
+    else if(e === 'off') LS.set('notif', true);
+    else if(e === 'pedir') await NOTIF.ask();
+    else if(e === 'negado') toast('Libere o site nas configurações do navegador','🔕');
+    else toast('Este navegador não tem avisos','🔕','instale o app na tela de início');
+    pintar();
+  };
+  const inst = $('#aj-instalar');
+  if(inst && INSTALL.evt){ inst.style.display = ''; inst.onclick = ()=> INSTALL.abrir(); }
+}
+
+/* ---------- instalar (A2HS) ---------- */
+const INSTALL = {
+  evt: null,
+  abrir(){
+    if(!INSTALL.evt) return;
+    INSTALL.evt.prompt();
+    INSTALL.evt.userChoice.finally(()=>{
+      INSTALL.evt = null;
+      const b = $('#aj-instalar'); if(b) b.style.display = 'none';
+    });
+  }
+};
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); INSTALL.evt = e;
+  const b = $('#aj-instalar'); if(b) b.style.display = '';
+});
+window.addEventListener('appinstalled', ()=>{ INSTALL.evt = null; toast('App instalado!','📲'); });
+
+/* ---------- novidades da versão ---------- */
+const APP_NEWS = [
+  ['🤖','Corrida contra o robô','Treine o modo corrida offline. Três espertezas: De boa, Esperto e Craque.'],
+  ['🔔','Avisos','O app te chama quando o amigo entra na sala ou responde seu desafio. Ative em Ajustes.'],
+  ['🔁','Revanche de verdade','Na corrida ao vivo, a revanche puxa os dois direto pro mesmo lobby.'],
+  ['💬','Diário no zap','Novo botão manda seu resultado do dia em texto, com quadradinhos e tudo.'],
+  ['💾','Temas salvos','Suas listas de palavras personalizadas ficam guardadas pra reusar quando quiser.'],
+  ['✨','Retoques','Arrastar palavra já achada não conta mais erro, e o Detetive ganhou +100 pistas.']
+];
+function newsCheck(){
+  const visto = LS.get('newsVisto');
+  if(visto === APP.versao) return;
+  LS.set('newsVisto', APP.versao);
+  if(!visto) return;
+  $('#novidades-corpo').innerHTML = APP_NEWS.map(i =>
+    `<div class="news-item"><span>${i[0]}</span><div><b>${i[1]}</b><small>${i[2]}</small></div></div>`).join('');
+  abrirVeu('novidades');
+}
+
+/* ---------- primeira abertura ---------- */
+function onboarding(){
+  if(LS.get('onboard')) return false;
+  const cards = [
+    ['🔍','Arraste pra achar','Passe o dedo sobre as letras, em linha reta, em qualquer direção. Vale de trás pra frente!'],
+    ['⚡','Jogue com a galera','Desafie pelo WhatsApp no ritmo de cada um, corra ao vivo no mesmo tabuleiro ou treine contra o robô.'],
+    ['📅','Todo dia tem','Desafio diário com ranking da galera, sequência 🔥, conquistas e recordes pra bater.']
+  ];
+  let i = 0;
+  const ov = document.createElement('div');
+  ov.className = 'onboard';
+  document.body.appendChild(ov);
+  const fim = ()=>{ LS.set('onboard', 1); LS.set('newsVisto', APP.versao); ov.remove(); };
+  const pinta = ()=>{
+    const c = cards[i];
+    ov.innerHTML = `
+      <div class="ob-card"><span class="ob-emoji">${c[0]}</span><h2>${c[1]}</h2><p>${c[2]}</p></div>
+      <div class="ob-dots">${cards.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div>
+      <div class="ob-btns">${i < cards.length-1
+        ? `<button class="btn-acao fantasma" id="ob-pular">Pular</button><button class="btn-acao ouro" id="ob-prox">Próximo</button>`
+        : `<button class="btn-acao ouro" id="ob-fim">Bora jogar! 🚀</button>`}</div>`;
+    const px = $('#ob-prox'); if(px) px.onclick = ()=>{ i++; pinta(); };
+    const pu = $('#ob-pular'); if(pu) pu.onclick = fim;
+    const f = $('#ob-fim'); if(f) f.onclick = fim;
+  };
+  pinta();
+  return true;
+}
+
+/* ---------- diário em texto (estilo quadradinhos) ---------- */
+function diarioTexto(res, di, info){
+  const q = '🟩'.repeat(res.n) + '🟥'.repeat(Math.max(0, res.total - res.n));
+  const st = (di.streak||0) > 1 ? `\n🔥 ${di.streak} dias seguidos` : '';
+  return `🔍 Caça-Palavras da Galera · Diário ${fmtData(info.date)}\n${q}\n${res.n}/${res.total} palavras · ⏱ ${fmtT(res.t)} · ⭐ ${res.pontos} pts${st}\n\nJoga o de hoje também: ${APP.url}`;
+}
+
+/* ---------- temas personalizados salvos ---------- */
+function montarTemasSalvos(){
+  const box = $('#setup-custom');
+  if(!box) return;
+  if(!$('#salvos-box')){
+    box.insertAdjacentHTML('afterbegin', `
+      <div id="salvos-box">
+        <div class="salvos" id="salvos-lista"></div>
+        <div style="display:flex;gap:8px;margin:2px 0 10px">
+          <input class="campo" id="salvo-nome" placeholder="Nome pra salvar (ex.: Família)" maxlength="16" autocomplete="off" style="flex:1;margin:0">
+          <button class="btn-acao" id="salvo-btn" style="width:auto;padding:0 18px;margin:0">💾</button>
+        </div>
+      </div>`);
+    $('#salvo-btn').onclick = ()=>{
+      const nome = ($('#salvo-nome').value || '').trim();
+      if(!nome){ toast('Dá um nome pro tema','✏️'); return; }
+      const { ok } = palavrasCustom();
+      if(ok.length < 6){ toast('Digite pelo menos 6 palavras válidas antes de salvar','✏️'); return; }
+      const lista = LS.get('temas', []).filter(t => t.n.toLowerCase() !== nome.toLowerCase());
+      lista.unshift({ n: nome, ps: ok });
+      LS.set('temas', lista.slice(0, 12));
+      $('#salvo-nome').value = '';
+      toast(`Tema "${nome}" salvo!`, '💾'); haptic(20);
+      pintarSalvos();
+    };
+  }
+  pintarSalvos();
+}
+function pintarSalvos(){
+  const el = $('#salvos-lista');
+  if(!el) return;
+  const lista = LS.get('temas', []);
+  el.innerHTML = lista.length
+    ? lista.map((t,i)=>`<button class="salvo" data-i="${i}">📁 ${esc(t.n)} <small style="color:var(--sub)">(${t.ps.length})</small><span class="x" data-x="${i}">✕</span></button>`).join('')
+    : '';
+  $$('#salvos-lista .salvo').forEach(b => b.onclick = e => {
+    const xi = e.target.dataset.x;
+    if(xi !== undefined){
+      const lista2 = LS.get('temas', []);
+      const nome = lista2[+xi].n;
+      if(!confirm(`Apagar o tema "${nome}"?`)) return;
+      lista2.splice(+xi, 1); LS.set('temas', lista2); pintarSalvos(); return;
+    }
+    const t = LS.get('temas', [])[+b.dataset.i];
+    if(!t) return;
+    $('#custom-palavras').value = t.ps.join(', ');
+    if(typeof atualizarCustomInfo === 'function') atualizarCustomInfo();
+    toast(`Tema "${t.n}" carregado`, '📂');
+  });
+}
+
+/* ---------- corrida contra o robô ---------- */
+const BOT_CFG = {
+  deboa:   { n:'De boa',  e:'😴', m: 12,   s: 5.4, d0: 5 },
+  esperto: { n:'Esperto', e:'🙂', m: 10.5, s: 4.7, d0: 4 },
+  craque:  { n:'Craque',  e:'🤓', m: 7.5,  s: 3.4, d0: 3 }
+};
+let BOT = null;
+function botJog(){ const c = BOT_CFG[BOT.nivel]; return { n: 'Robô ' + c.n, a: 'robo' }; }
+function iniciarCorridaBot(cfg){
+  fecharSala();
+  iniciarPartida(cfg);
+  if(!P) return;
+  P.remotas = new Set(); P.pendentes = {}; P.corridaDonos = {};
+  BOT = { nivel: cfg.corrida.bot.nivel, pts: 0, w: 0, prox: 0, iv: null };
+  $('#race-ele')?.remove();
+  const d = document.createElement('div');
+  d.className = 'pill race'; d.id = 'race-ele';
+  d.innerHTML = `<span class="avatar">${avatarSvg('robo')}</span><b id="race-pts">0</b>`;
+  $('.hud').appendChild(d);
+  countdown(()=>{
+    largadaTimer();
+    botAgenda(true);
+    BOT.iv = setInterval(botTick, 300);
+  });
+}
+function botAgenda(primeira){
+  const c = BOT_CFG[BOT.nivel];
+  const base = primeira ? c.d0 : c.m;
+  const j = (Math.random() * 2 - 1) * c.s;
+  BOT.prox = P.elapsedMs + Math.max(1.8, base + j) * 1000;
+}
+function botTick(){
+  if(!P || P.fim || !P.cfg.corrida || !P.cfg.corrida.bot){ if(BOT) clearInterval(BOT.iv); return; }
+  if(document.hidden || (P.congeladoAte && Date.now() < P.congeladoAte)){ BOT.prox += 300; return; }
+  if(P.elapsedMs < BOT.prox) return;
+  const rest = [...P.restantes.keys()];
+  if(!rest.length) return;
+  const norm = rest[(Math.random() * rest.length) | 0];
+  const v = E.valorPalavra(norm);
+  marcarCorrida(norm, false);
+  P.corridaDonos[norm] = 'bot';
+  BOT.pts += v; BOT.w++;
+  const rp = $('#race-pts'); if(rp) rp.textContent = BOT.pts;
+  repintarCorrida(botJog());
+  atualizarContador();
+  botAgenda(false);
+  if(P.restantes.size === 0 && !P.fim && !P.fimEmAndamento){
+    P.fimEmAndamento = true;
+    setTimeout(()=> fimPartida(true), 450);
+  }
+}
+function fluxoRoboFim(res, snap){
+  if(BOT) clearInterval(BOT.iv);
+  const eu = getPerfil();
+  const b = botJog();
+  const d = {
+    tema: P.cfg.temaId, dif: P.cfg.nivel, palavras: P.cfg.palavrasCustom || null,
+    criador: { n: eu.nome, a: eu.avatar, p: res.pontos, w: res.n, t: res.t, e: res.erros, po: res.poderes },
+    rival:   { n: b.n, a: 'robo', p: BOT.pts, w: BOT.w, t: res.t, e: 0, po: 0 }
+  };
+  const r = resultadoDesafio(d);
+  const st = LS.get('stats', {});
+  if(r === 'criador') st.roboV = (st.roboV||0) + 1;
+  LS.set('stats', st);
+  const h = LS.get('h2h', {});
+  const oo = h[b.n] || { v:0, d:0, e:0 };
+  oo[r === 'empate' ? 'e' : (r === 'criador' ? 'v' : 'd')]++;
+  oo.avatar = 'robo'; oo.ult = Date.now(); h[b.n] = oo; LS.set('h2h', h);
+  checarConquistas();
+  const cfg0 = Object.assign({}, P.cfg);
+  renderComparacao('', d, 'criador', snap, false);
+  $('#comparacao-titulo').textContent = '🤖 Resultado da corrida';
+  const rev = $('#cmp-revanche');
+  if(rev) rev.onclick = ()=> iniciarCorridaBot(Object.assign({}, cfg0, { seed: (Math.random()*0xFFFFFFFF)>>>0 }));
+  const zb = $('#cmp-zap');
+  if(zb) zb.onclick = ()=> zap(
+    `🤖 ${r==='criador' ? 'Venci o robô '+BOT_CFG[BOT.nivel].n : r==='empate' ? 'Empatei com o robô '+BOT_CFG[BOT.nivel].n : 'O robô '+BOT_CFG[BOT.nivel].n+' me pegou'} na corrida de caça-palavras!\n${eu.nome} ${res.pontos} × ${BOT.pts} ${b.n}\n\nTenta você: ${APP.url}`);
+}
+
+/* ---------- avatar do robô + confete acessível ---------- */
+const _avatarSvg = avatarSvg;
+avatarSvg = function(id){
+  if(id === 'robo') return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="30" fill="#334155"/><rect x="29" y="10" width="6" height="10" rx="3" fill="#94a3b8"/><circle cx="32" cy="9" r="4" fill="#fbbf24"/><rect x="13" y="20" width="38" height="27" rx="9" fill="#94a3b8"/><rect x="18" y="26" width="28" height="15" rx="7.5" fill="#1e293b"/><circle cx="25.5" cy="33.5" r="4" fill="#38bdf8"/><circle cx="38.5" cy="33.5" r="4" fill="#38bdf8"/><rect x="23" y="50" width="18" height="4.5" rx="2.2" fill="#64748b"/></svg>`;
+  return _avatarSvg(id);
+};
+const _confete = confete;
+confete = function(){
+  try{ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch{}
+  _confete();
+};
+
+/* ---------- +100 pistas do detetive ---------- */
+CG_DET.push(
+  {p:'Tamanduá',c:'Língua comprida, come formiga'},{p:'Preguiça',c:'O bicho mais devagar do mundo'},{p:'Jacaré',c:'Sorriso perigoso do pântano'},
+  {p:'Arara',c:'Ave colorida que grita alto'},{p:'Beija-flor',c:'Bate asa parado no ar'},{p:'Polvo',c:'Oito braços no fundo do mar'},
+  {p:'Joaninha',c:'Vermelha de bolinhas pretas'},{p:'Grilo',c:'Canta a noite inteira'},{p:'Minhoca',c:'Amiga do jardim, sem pé nenhum'},
+  {p:'Tubarão',c:'Barbatana de arrepiar'},{p:'Baleia',c:'A gigante dos oceanos'},{p:'Coelho',c:'Orelhudo que ama cenoura'},
+  {p:'Galo',c:'O despertador da roça'},{p:'Cavalo',c:'Relincha e galopa'},{p:'Tatu',c:'Bolinha blindada do cerrado'},{p:'Piranha',c:'Dentinho afiado de rio'},
+  {p:'Farofa',c:'Companheira fiel do churrasco'},{p:'Moqueca',c:'Peixe no dendê e leite de coco'},{p:'Vatapá',c:'Creme baiano do acarajé'},
+  {p:'Pudim',c:'Doce de furinhos com calda'},{p:'Beijinho',c:'Docinho branco de coco'},{p:'Paçoca',c:'Amendoim esmagado que esfarela'},
+  {p:'Guaraná',c:'Refrigerante bem brasileiro'},{p:'Cafezinho',c:'Pequeno, forte e de toda hora'},{p:'Tempero',c:'O segredo da comida boa'},
+  {p:'Colher',c:'Par do garfo na hora da sopa'},{p:'Frigideira',c:'Onde o ovo frita'},{p:'Avental',c:'Protege a roupa do cozinheiro'},
+  {p:'Receita',c:'Passo a passo do prato'},{p:'Fermento',c:'Faz o bolo crescer'},
+  {p:'Geada',c:'Gelo fininho da madrugada fria'},{p:'Relâmpago',c:'O clarão antes do estrondo'},{p:'Tempestade',c:'Chuva brava com ventania'},
+  {p:'Garoa',c:'Chuvinha fina que não molha direito'},{p:'Horizonte',c:'Onde o céu encontra a terra'},{p:'Correnteza',c:'A força do rio que puxa'},
+  {p:'Nascente',c:'Onde o rio começa'},{p:'Floresta',c:'Casa de mil árvores'},{p:'Orquídea',c:'Flor chique de vaso pendurado'},
+  {p:'Girassol',c:'Flor que persegue o sol'},{p:'Cacto',c:'Cheio de espinhos, dispensa água'},
+  {p:'Ônibus',c:'Para no ponto e leva a galera'},{p:'Metrô',c:'Trem que corre por baixo da cidade'},{p:'Bicicleta',c:'Duas rodas movidas a pedal'},
+  {p:'Capacete',c:'Protege a cabeça do motoqueiro'},{p:'Esquina',c:'Onde duas ruas se encontram'},{p:'Elevador',c:'Sobe andares sem escada'},
+  {p:'Túnel',c:'Caminho furado na montanha'},{p:'Viaduto',c:'Rua que passa por cima da outra'},{p:'Ambulância',c:'Corre com a sirene ligada'},
+  {p:'Cabide',c:'Segura a roupa no armário'},{p:'Tomada',c:'Onde o carregador se pluga'},{p:'Interruptor',c:'Liga e desliga a luz'},
+  {p:'Cortina',c:'Veste a janela'},{p:'Tapete',c:'Limpa o pé na entrada'},{p:'Rede',c:'Cama de embalar da varanda'},
+  {p:'Varanda',c:'Cantinho de fora da casa'},{p:'Quintal',c:'O parquinho da casa de vó'},{p:'Regador',c:'Dá de beber às plantas'},
+  {p:'Varal',c:'Onde a roupa toma sol'},
+  {p:'Bochecha',c:'Infla quando você sopra'},{p:'Queixo',c:'A pontinha do rosto'},{p:'Costela',c:'Grade que guarda o coração'},
+  {p:'Calcanhar',c:'Ponto fraco de Aquiles'},{p:'Vacina',c:'Picadinha que protege'},{p:'Curativo',c:'Cobre o machucado'},
+  {p:'Termômetro',c:'Mede a febre'},
+  {p:'Caderno',c:'Folhas pautadas de anotar'},{p:'Apontador',c:'Deixa o lápis afiado'},{p:'Giz',c:'Escreve na lousa e suja a mão'},
+  {p:'Lousa',c:'O quadro do professor'},{p:'Teclado',c:'Cheio de letras pra digitar'},{p:'Carregador',c:'Salva o celular da bateria'},
+  {p:'Fone',c:'Música só pra você'},{p:'Robô',c:'Máquina que imita gente'},
+  {p:'Triângulo',c:'O tim-tim do forró'},{p:'Zabumba',c:'O grave do baião'},{p:'Chocalho',c:'Balança e faz barulho'},
+  {p:'Microfone',c:'Amplifica a voz do cantor'},{p:'Pista',c:'Onde a galera dança'},{p:'Confete',c:'Chuva colorida de festa'},
+  {p:'Serpentina',c:'Espiral de papel que voa'},
+  {p:'Concha',c:'Guarda o som do mar'},{p:'Sereia',c:'Metade peixe das lendas'},{p:'Mergulho',c:'De cabeça na água'},
+  {p:'Boia',c:'Não deixa afundar'},{p:'Salva-vidas',c:'O guardião da praia'},
+  {p:'Mandacaru',c:'Cacto símbolo do sertão'},{p:'Cangaceiro',c:'Chapéu de couro de Lampião'},{p:'Vaqueiro',c:'Toca a boiada de gibão'},
+  {p:'Cuia',c:'Vasilha do chimarrão'},{p:'Chimarrão',c:'Mate quente do Sul'},
+  {p:'Abraço',c:'Aperto carinhoso de braços'},{p:'Gargalhada',c:'Riso alto que contagia'},{p:'Cochilo',c:'Soninho rápido de sofá'},
+  {p:'Madrugada',c:'Quando quase todos dormem'},{p:'Arrepio',c:'Pele de galinha na hora'},{p:'Carinho',c:'Afago de quem gosta'},
+  {p:'Mesada',c:'O salário da criançada'},{p:'Fila',c:'Todo mundo esperando a vez'}
+);
+for(const d of CG_DET) DET_MAP[E.norm(d.p)] = d.c;
+
+/* ---------- boas-vindas ---------- */
+setTimeout(()=>{ if(!onboarding()) newsCheck(); }, 600);
 
 </script>
 </body>
