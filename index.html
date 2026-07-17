@@ -551,7 +551,7 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
 </section>
 
 <section class="tela" id="tela-lobby">
-  <div class="topo"><button class="btn-volta" data-home>←</button><h2>⚡ Corrida ao vivo</h2></div>
+  <div class="topo"><button class="btn-volta" id="lobby-volta">←</button><h2>⚡ Corrida ao vivo</h2></div>
   <div id="lobby-corpo"></div>
 </section>
 
@@ -2530,6 +2530,7 @@ function abrirSalaCtx(code, dono){
   fecharSala();
   SALA = { code, dono, espelho: null, largou: false };
   renderLobby();
+  show('lobby', false);
   iniciarSync();
   SALA.pingIv = setInterval(()=>{ if(SALA) fb(`salas/${code}/j/${uid()}/ping`, { method:'PUT', body:'{".sv":"timestamp"}' }).catch(()=>{}); }, 8000);
 }
@@ -2588,13 +2589,19 @@ function aoAtualizarSala(){
       SALA.encerrada = true;
       const rev = $('#cmp-revanche');
       if(rev){ rev.disabled = true; rev.style.opacity = .5; rev.textContent = '🚪 Sala encerrada'; }
-      if(!SALA.largou){ toast('A sala foi encerrada','🚪'); fecharSala(); show('home'); }
+      if(!SALA.largou){
+        const ativa = document.querySelector('.tela.ativa');
+        fecharSala();
+        if(ativa && ativa.id === 'tela-lobby'){ toast('A sala foi encerrada','🚪'); show('home'); }
+      }
       else fecharSala();
     }
     return;
   }
   if(!s) return;
   if(!SALA.largou){
+    const ativa = document.querySelector('.tela.ativa');
+    if(!ativa || ativa.id !== 'tela-lobby'){ sairDaSala(false); return; }
     renderLobby();
     notifLobby(s);
     if(s.status === 'jogando') iniciarCorridaPartida(s);
@@ -2611,6 +2618,7 @@ function voltarProLobby(){
   clearInterval(SALA.watch);
   toast('Revanche! De volta pro lobby','🔁'); Som.poder(); haptic(20);
   renderLobby();
+  show('lobby', false);
 }
 function notifLobby(s){
   const n = Object.keys((s && s.j) || {}).length;
@@ -2652,14 +2660,19 @@ function renderLobby(){
     catch{ lg.disabled = false; lg.textContent = '🚦 Dar a largada!'; toast('Sem conexão, tenta de novo','📡'); return; }
     if(SALA.espelho){ SALA.espelho.status = 'jogando'; aoAtualizarSala(); }
   };
-  $('#lb-sair').onclick = async ()=>{
-    const code = SALA.code, dono = SALA.dono;
-    SALA.encerrada = true; fecharSala();
-    try{ if(dono) await fb('salas/'+code, { method:'DELETE' }); else await fb(`salas/${code}/j/${uid()}`, { method:'DELETE' }); }catch{}
-    show('home');
-  };
-  show('lobby', false);
+  $('#lb-sair').onclick = ()=> sairDaSala(true);
 }
+function sairDaSala(navegar){
+  if(!SALA) return;
+  const code = SALA.code, dono = SALA.dono;
+  SALA.encerrada = true; fecharSala();
+  if(dono){
+    fb('salas/'+code, { method:'DELETE' }).catch(()=>{});
+    LS.set('salas', LS.get('salas',[]).filter(x=>x.code!==code));
+  } else fb(`salas/${code}/j/${uid()}`, { method:'DELETE' }).catch(()=>{});
+  if(navegar) show('home');
+}
+$('#lobby-volta').onclick = ()=> sairDaSala(true);
 function iniciarCorridaPartida(s){
   if(SALA.largou) return;
   SALA.largou = true;
