@@ -5,14 +5,22 @@
    - estáticos (manifesto, ícones): cache primeiro, atualiza por baixo.
    - Firebase e qualquer coisa de fora da origem: NÃO intercepta (desafios e diário intactos).
    Ao mudar ícones/manifesto, suba o número do CACHE pra forçar atualização. */
-const CACHE = 'caca-v3';
+const CACHE = 'caca-v4';
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
-  './icon-maskable-512.png'
+  './icon-maskable-512.png',
+  './bg/bg-quadro.webp',
+  './bg/bg-madeira.webp',
+  './bg/bg-papel.webp',
+  './bg/bg-cortica.webp',
+  './bg/bg-kraft.webp',
+  './bg/bg-ceu.webp',
+  './bg/bg-areia.webp',
+  './bg/bg-aquarela.webp'
 ];
 
 self.addEventListener('install', e => {

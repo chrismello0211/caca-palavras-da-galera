@@ -391,6 +391,17 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 
+/* ---------- v4: fundos do tabuleiro ---------- */
+#board-wrap{background-size:cover;background-position:center}
+#board-wrap.escuro .cel{color:#f2ead6}
+.fundos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fundo{background:none;border:none;padding:0;text-align:center}
+.fundo .mini{display:block;width:100%;aspect-ratio:1;border-radius:14px;border:3px solid var(--line);background-size:cover;background-position:center;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.fundo.sel .mini{border-color:var(--gold)}
+.fundo small{display:block;margin-top:5px;font-weight:800;font-size:11.5px;color:var(--sub)}
+.fundo.sel small{color:var(--gold)}
+.fundo.presa .mini{filter:grayscale(.55) brightness(.55)}
+
 </style>
 </head>
 <body>
@@ -572,6 +583,11 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
   <input class="campo" id="input-codigo" maxlength="6" placeholder="EX.: K7PMX2" autocomplete="off" autocapitalize="characters" style="text-align:center;letter-spacing:6px;font-family:'Baloo 2';font-size:24px">
   <div class="aviso-net" id="codigo-aviso"></div>
   <button class="btn-acao azul" id="btn-abrir-codigo">Abrir desafio</button>
+</div></div>
+
+<div class="veu" id="veu-fundos"><div class="modal">
+  <h3>🎨 Fundo do tabuleiro <button class="fecha" data-fecha>✕</button></h3>
+  <div class="fundos" id="fundos-grid"></div>
 </div></div>
 
 <div class="veu" id="veu-novidades"><div class="modal">
@@ -868,7 +884,7 @@ const APP = {
   nome: 'Caça-Palavras da Galera',
   url: 'https://chrismello0211.github.io/caca-palavras-da-galera/',
   fb: 'https://bolao-da-copa-8be20-default-rtdb.firebaseio.com/bolao/caca',
-  versao: 'v2026.07.17'
+  versao: 'v2026.07.17.2'
 };
 const E = CGE, TEMAS = CG_TEMAS;
 const NIVEIS = {
@@ -1202,7 +1218,7 @@ function capsula(cells, cor, grupo, op){
 }
 function redesenharAchadas(){
   const g = $('#g-achadas'); g.innerHTML = '';
-  for(const a of P.achadas.values()) capsula(a.cells, PALETA[a.cor % PALETA.length], g, .5);
+  for(const a of P.achadas.values()) capsula(a.cells, PALETA[a.cor % PALETA.length], g, OPA().ach);
 }
 
 /* seleção por arrasto */
@@ -1273,7 +1289,7 @@ function redesenharAchadas(){
 })();
 function desenharLive(){
   const g = $('#g-live'); g.innerHTML = '';
-  if(P.sel) capsula(P.sel.cells, '#fbbf24', g, .48);
+  if(P.sel) capsula(P.sel.cells, '#fbbf24', g, OPA().sel);
 }
 function selecaoJaAchada(cells){
   if(!P || cells.length < 3) return null;
@@ -1287,7 +1303,7 @@ function erroSelecao(cells){
   P.erros++;
   Som.erro(); haptic(35);
   const g = $('#g-live');
-  const l = capsula(cells, '#f87171', g, .5);
+  const l = capsula(cells, '#f87171', g, OPA().erro);
   $('#board-wrap').style.animation = 'treme .3s';
   setTimeout(()=>{ $('#board-wrap').style.animation=''; l.remove(); }, 320);
 }
@@ -1296,7 +1312,7 @@ function achouPalavra(normKey, cells){
   P.restantes.delete(normKey);
   const cor = P.achadas.size;
   P.achadas.set(normKey, { palavra: bonita, cells: cells.slice(), cor });
-  capsula(cells, PALETA[cor % PALETA.length], $('#g-achadas'), .5);
+  capsula(cells, PALETA[cor % PALETA.length], $('#g-achadas'), OPA().ach);
   let ganho = E.valorPalavra(bonita);
   const agora = Date.now();
   if(!P.cfg.corrida && P.ultimaAchada && agora - P.ultimaAchada < 12000){ ganho += 15; P.streakBonus += 15; Som.streak(); }
@@ -2031,6 +2047,7 @@ function renderAjustes(){
     <div class="linha-config"><span><b>🔔 Avisos</b><small id="notif-sub">Amigo entrou na sala, desafio respondido</small></span>
       <button class="switch" id="sw-notif"></button></div>
     <button class="btn-acao fantasma" id="aj-instalar" style="display:none">📲 Instalar o aplicativo</button>
+    <button class="btn-acao fantasma" id="aj-fundo" style="margin-top:14px">🎨 Fundo do tabuleiro</button>
     <button class="btn-acao fantasma" id="aj-perfil" style="margin-top:14px">👤 Nome, bicho e conquistas</button>
     <button class="btn-acao fantasma" id="aj-regras">❓ Como funciona</button>
     <button class="btn-acao fantasma" id="aj-apagar" style="color:var(--red)">🗑️ Apagar meus dados deste aparelho</button>
@@ -2039,6 +2056,7 @@ function renderAjustes(){
   $('#sw-vibra').onclick = function(){ const v = !LS.get('vibra',true); LS.set('vibra', v); this.classList.toggle('on', v); haptic(20); };
   $('#aj-perfil').onclick = ()=>{ fecharVeus(); telaPerfil(); };
   $('#aj-regras').onclick = ()=>{ fecharVeus(); renderRegras(); abrirVeu('regras'); };
+  $('#aj-fundo').onclick = ()=>{ fecharVeus(); renderFundos(); abrirVeu('fundos'); };
   if(typeof notifAjustesBind === 'function') notifAjustesBind();
   $('#aj-apagar').onclick = ()=>{
     if(!confirm('Apagar nome, estatísticas, conquistas e histórico de desafios deste aparelho?')) return;
@@ -2762,7 +2780,7 @@ function repintarCorrida(o){
   const g = $('#g-achadas'); g.innerHTML = '';
   for(const [norm, a] of P.achadas){
     const deles = P.corridaDonos[norm] && P.corridaDonos[norm] !== meu;
-    const l = capsula(a.cells, PALETA[a.cor % PALETA.length], g, deles ? .34 : .5);
+    const l = capsula(a.cells, PALETA[a.cor % PALETA.length], g, deles ? OPA().deles : OPA().ach);
     if(deles) l.setAttribute('stroke-dasharray', `${P.cs*.8} ${P.cs*.4}`);
   }
   $$('#chips .chip').forEach(ch => {
@@ -3006,12 +3024,10 @@ window.addEventListener('appinstalled', ()=>{ INSTALL.evt = null; toast('App ins
 
 /* ---------- novidades da versão ---------- */
 const APP_NEWS = [
-  ['🤖','Corrida contra o robô','Treine o modo corrida offline. Três espertezas: De boa, Esperto e Craque.'],
-  ['🔔','Avisos','O app te chama quando o amigo entra na sala ou responde seu desafio. Ative em Ajustes.'],
-  ['🔁','Revanche de verdade','Na corrida ao vivo, a revanche puxa os dois direto pro mesmo lobby.'],
-  ['💬','Diário no zap','Novo botão manda seu resultado do dia em texto, com quadradinhos e tudo.'],
-  ['💾','Temas salvos','Suas listas de palavras personalizadas ficam guardadas pra reusar quando quiser.'],
-  ['✨','Retoques','Arrastar palavra já achada não conta mais erro, e o Detetive ganhou +100 pistas.']
+  ['🎨','Fundos de tabuleiro','Quadro-negro, madeira, céu estrelado, areia e mais. Troque em Ajustes.'],
+  ['🌙','Céu noturno secreto','Faça 7 dias seguidos no desafio diário pra destrancar o fundo estrelado.'],
+  ['🤖','Corrida contra o robô','Da versão passada: treine a corrida offline em três espertezas.'],
+  ['✨','Retoques','Letras e cápsulas se ajustam sozinhas nos fundos escuros.']
 ];
 function newsCheck(){
   const visto = LS.get('newsVisto');
@@ -3245,6 +3261,57 @@ for(const d of CG_DET) DET_MAP[E.norm(d.p)] = d.c;
 
 /* ---------- boas-vindas ---------- */
 setTimeout(()=>{ if(!onboarding()) newsCheck(); }, 600);
+
+/* ============ v4: fundos do tabuleiro ============ */
+const FUNDOS = [
+  { id:'classico', nome:'Clássico',     img:null,                   escuro:false },
+  { id:'papel',    nome:'Papel',        img:'bg/bg-papel.webp',     escuro:false },
+  { id:'madeira',  nome:'Madeira',      img:'bg/bg-madeira.webp',   escuro:false },
+  { id:'areia',    nome:'Areia',        img:'bg/bg-areia.webp',     escuro:false },
+  { id:'aquarela', nome:'Aquarela',     img:'bg/bg-aquarela.webp',  escuro:false },
+  { id:'kraft',    nome:'Kraft',        img:'bg/bg-kraft.webp',     escuro:false },
+  { id:'cortica',  nome:'Cortiça',      img:'bg/bg-cortica.webp',   escuro:false },
+  { id:'quadro',   nome:'Quadro-negro', img:'bg/bg-quadro.webp',    escuro:true },
+  { id:'ceu',      nome:'Céu noturno',  img:'bg/bg-ceu.webp',       escuro:true,
+    trava:{ cond: s => (s.diarioBest||0) >= 7, desc:'Sequência de 7 no desafio diário' } }
+];
+function fundoAtual(){
+  const id = LS.get('fundo','classico');
+  return FUNDOS.find(f => f.id === id) || FUNDOS[0];
+}
+function OPA(){
+  return fundoAtual().escuro
+    ? { ach:.62, deles:.46, sel:.55, erro:.6 }
+    : { ach:.5,  deles:.34, sel:.48, erro:.5 };
+}
+function aplicarFundo(){
+  const f = fundoAtual();
+  const w = $('#board-wrap'); if(!w) return;
+  if(f.img){ w.style.backgroundImage = `url('${f.img}')`; }
+  else w.style.backgroundImage = '';
+  w.classList.toggle('escuro', !!f.escuro);
+}
+function renderFundos(){
+  const s = LS.get('stats',{});
+  const atual = fundoAtual().id;
+  $('#fundos-grid').innerHTML = FUNDOS.map(f => {
+    const presa = f.trava && !f.trava.cond(s);
+    const st = f.img ? `background-image:url('${f.img}')` : 'background:linear-gradient(180deg,#f7f1de,#e9dfc0)';
+    return `<button class="fundo ${atual===f.id?'sel':''} ${presa?'presa':''}" data-f="${f.id}">
+      <span class="mini" style="${st}"></span><small>${presa?'🔒 ':''}${f.nome}</small>
+    </button>`;
+  }).join('');
+  $$('#fundos-grid .fundo').forEach(b => b.onclick = ()=>{
+    const f = FUNDOS.find(x => x.id === b.dataset.f);
+    if(f.trava && !f.trava.cond(LS.get('stats',{}))){
+      toast('Fundo trancado', '🔒', f.trava.desc); haptic(25); return;
+    }
+    LS.set('fundo', f.id);
+    aplicarFundo(); renderFundos();
+    Som.tick(); haptic(15);
+  });
+}
+aplicarFundo();
 
 </script>
 </body>
