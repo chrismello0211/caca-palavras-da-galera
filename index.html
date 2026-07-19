@@ -884,7 +884,7 @@ const APP = {
   nome: 'Caça-Palavras da Galera',
   url: 'https://chrismello0211.github.io/caca-palavras-da-galera/',
   fb: 'https://bolao-da-copa-8be20-default-rtdb.firebaseio.com/bolao/caca',
-  versao: 'v2026.07.17.2'
+  versao: 'v2026.07.18'
 };
 const E = CGE, TEMAS = CG_TEMAS;
 const NIVEIS = {
@@ -2504,9 +2504,12 @@ function linkSala(code){ return `${APP.url}?s=${code}`; }
 function fecharSala(){
   if(!SALA) return;
   try{ SALA.es && SALA.es.close(); }catch{}
-  clearInterval(SALA.poll); clearInterval(SALA.pingIv); clearInterval(SALA.watch);
+  clearInterval(SALA.poll); clearInterval(SALA.pingIv); clearInterval(SALA.watch); clearInterval(SALA.vigia);
   SALA = null;
 }
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden && SALA){ SALA.ultimoEvento = 0; pollSala(); }
+});
 function lobbyMsg(html){ $('#lobby-corpo').innerHTML = html; show('lobby', false); }
 function lobbyErro(msg, retry){
   lobbyMsg(`<div class="resultado-topo"><span class="trofeu">📡</span><h2>Opa!</h2><p>${msg}</p></div>
@@ -2546,11 +2549,19 @@ async function entrarSala(code){
 }
 function abrirSalaCtx(code, dono){
   fecharSala();
-  SALA = { code, dono, espelho: null, largou: false };
+  SALA = { code, dono, espelho: null, largou: false, ultimoEvento: Date.now() };
   renderLobby();
   show('lobby', false);
   iniciarSync();
   SALA.pingIv = setInterval(()=>{ if(SALA) fb(`salas/${code}/j/${uid()}/ping`, { method:'PUT', body:'{".sv":"timestamp"}' }).catch(()=>{}); }, 8000);
+  SALA.vigia = setInterval(async ()=>{
+    if(!SALA) return;
+    if(Date.now() - (SALA.ultimoEvento||0) < 10000) return;
+    // silêncio demais: conexão pode ter morrido sem avisar. Busca a verdade e religa o vivo.
+    await pollSala();
+    if(SALA && SALA.es){ try{ SALA.es.close(); }catch{} SALA.es = null; }
+    if(SALA && !SALA.poll) iniciarSync();
+  }, 3000);
 }
 function iniciarSync(){
   const code = SALA.code;
@@ -2567,10 +2578,11 @@ function iniciarSync(){
 }
 async function pollSala(){
   if(!SALA) return;
-  try{ SALA.espelho = await fbGet('salas/'+SALA.code); aoAtualizarSala(); }catch{}
+  try{ SALA.espelho = await fbGet('salas/'+SALA.code); SALA.ultimoEvento = Date.now(); aoAtualizarSala(); }catch{}
 }
 function aplicarEvento(path, data, merge){
   if(!SALA) return;
+  SALA.ultimoEvento = Date.now();
   const partes = String(path||'/').split('/').filter(Boolean);
   const setEm = (base, ps, valor)=>{
     let alvo = base;
@@ -2748,6 +2760,11 @@ function recalcCorrida(){
   const jsMe = s.j && s.j[meu];
   for(const norm of Object.keys(P.pendentes)) if(jsMe && jsMe.achadas && jsMe.achadas[norm]) delete P.pendentes[norm];
   const { eu, ele, dele, own } = corridaPlacar();
+  if((s.fimEm || (outroJ(s) && outroJ(s).fim)) && !P.fim && !P.fimEmAndamento){
+    P.fimEmAndamento = true;
+    setTimeout(()=> fimPartida(true), 250);
+    return;
+  }
   const o = outroJ(s);
   let roubo = null;
   for(const [norm, d] of Object.entries(own)){
@@ -2799,19 +2816,24 @@ async function fluxoCorridaFim(res, snap){
   const code = SALA ? SALA.code : null;
   if(!code){ show('home'); return; }
   NOTIF.clear('sala');
-  fb(`salas/${code}/j/${uid()}`, { method:'PATCH', body: JSON.stringify({ fim:{'.sv':'timestamp'}, er: P.erros, po: P.usados, t: res.t }) }).catch(()=>{});
+  const meuU = uid();
+  const fimUpd = { fimEm: {'.sv':'timestamp'} };
+  fimUpd[`j/${meuU}/fim`] = {'.sv':'timestamp'};
+  fimUpd[`j/${meuU}/er`] = P.erros; fimUpd[`j/${meuU}/po`] = P.usados; fimUpd[`j/${meuU}/t`] = res.t;
+  try{ await fb('salas/'+code, { method:'PATCH', body: JSON.stringify(fimUpd) }); }catch{}
   $('#comparacao-corpo').innerHTML = `<div class="centro-carrega"><span class="spin"></span><br><br>Fechando a corrida…</div>`;
   show('comparacao');
   await new Promise(r => {
     let esperou = 0;
     const iv = setInterval(async ()=>{
-      esperou += 400;
+      esperou += 700;
       if(!SALA){ clearInterval(iv); r(); return; }
-      if(!SALA.es) await pollSala();
+      await pollSala();
       const o = outroJ(SALA.espelho);
-      if((o && (o.fim || o.saiu)) || esperou > 6000){ clearInterval(iv); r(); }
-    }, 400);
+      if((o && (o.fim || o.saiu)) || esperou > 6300){ clearInterval(iv); r(); }
+    }, 700);
   });
+  if(SALA) await pollSala(); // fotografia final oficial: os dois calculam da MESMA verdade
   const s = (SALA && SALA.espelho) || {};
   const js = s.j || {}; const meu = uid();
   const { own } = corridaPlacar();
@@ -2852,7 +2874,7 @@ async function fluxoCorridaFim(res, snap){
 async function revancheCorrida(){
   if(!SALA || SALA.encerrada) return;
   const s = SALA.espelho || {}; const js = s.j || {};
-  const upd = { status: 'lobby', inicio: null, seed: (Math.random()*0xFFFFFFFF)>>>0 };
+  const upd = { status: 'lobby', inicio: null, seed: (Math.random()*0xFFFFFFFF)>>>0, fimEm: null };
   for(const u of Object.keys(js)){
     upd[`j/${u}/achadas`] = null; upd[`j/${u}/fim`] = null; upd[`j/${u}/saiu`] = null;
     upd[`j/${u}/er`] = null; upd[`j/${u}/po`] = null; upd[`j/${u}/t`] = null;
@@ -3024,10 +3046,10 @@ window.addEventListener('appinstalled', ()=>{ INSTALL.evt = null; toast('App ins
 
 /* ---------- novidades da versão ---------- */
 const APP_NEWS = [
+  ['⚡','Corrida blindada','O placar final agora fecha igualzinho nos dois celulares, mesmo com internet oscilando.'],
   ['🎨','Fundos de tabuleiro','Quadro-negro, madeira, céu estrelado, areia e mais. Troque em Ajustes.'],
   ['🌙','Céu noturno secreto','Faça 7 dias seguidos no desafio diário pra destrancar o fundo estrelado.'],
-  ['🤖','Corrida contra o robô','Da versão passada: treine a corrida offline em três espertezas.'],
-  ['✨','Retoques','Letras e cápsulas se ajustam sozinhas nos fundos escuros.']
+  ['🤖','Corrida contra o robô','Treine a corrida offline em três espertezas.']
 ];
 function newsCheck(){
   const visto = LS.get('newsVisto');
