@@ -402,6 +402,12 @@ textarea.campo{min-height:96px;resize:vertical;font-weight:700;text-transform:no
 .fundo.sel small{color:var(--gold)}
 .fundo.presa .mini{filter:grayscale(.55) brightness(.55)}
 
+/* ---------- v6: mascote ---------- */
+.ob-mascote{width:170px;height:170px;object-fit:contain;display:block;margin:0 auto;animation:flutua 2.4s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))}
+.res-mascote{width:120px;height:120px;object-fit:contain;display:block;margin:0 auto 4px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+.info-mascote{float:right;width:74px;height:74px;object-fit:contain;margin:-4px -2px 4px 8px}
+.mascote-espera{width:62px;height:62px;object-fit:contain;display:inline-block;opacity:.92}
+
 </style>
 </head>
 <body>
@@ -884,7 +890,7 @@ const APP = {
   nome: 'Caça-Palavras da Galera',
   url: 'https://chrismello0211.github.io/caca-palavras-da-galera/',
   fb: 'https://bolao-da-copa-8be20-default-rtdb.firebaseio.com/bolao/caca',
-  versao: 'v2026.07.18'
+  versao: 'v2026.07.21'
 };
 const E = CGE, TEMAS = CG_TEMAS;
 const NIVEIS = {
@@ -1556,7 +1562,7 @@ function renderResultadoSolo(res, snap){
   $('#resultado-titulo').textContent = cfg.modo==='treino' ? 'Treino concluído' : 'Resultado';
   $('#resultado-corpo').innerHTML = `
     <div class="resultado-topo">
-      <span class="trofeu">${res.completa?'🏆':'⏳'}</span>
+      <img class="res-mascote" src="${res.completa?'mascote/mascote-festa.webp':'mascote/mascote-triste.webp'}" alt="">
       <h2>${titulo}</h2>
       <p>${nomeTema(cfg)} · ${NIVEIS[cfg.nivel].nome}${cfg.modo==='treino'?' · modo treino':''}</p>
       ${res.recorde ? '<span class="selo-recorde">🎖️ Novo recorde pessoal!</span>' : ''}
@@ -2379,7 +2385,8 @@ function aplicarSetupVis(modo){
       ${rec.rodada ? `<p style="color:var(--gold);font-weight:900;font-size:13px;margin-top:8px">🏅 Seu recorde: rodada ${rec.rodada} · ${rec.pontos} pts</p>` : ''}`;
   } else if(modo==='solo' && tipo==='detetive'){
     info.style.display = '';
-    info.innerHTML = `<b style="font-family:'Baloo 2';font-size:16px">🕵️ Como funciona</b>
+    info.innerHTML = `<img class="info-mascote" src="mascote/mascote-lupa.webp" alt="">
+      <b style="font-family:'Baloo 2';font-size:16px">🕵️ Como funciona</b>
       <p style="color:var(--sub);font-weight:800;font-size:13px;margin-top:6px">Nada de lista de palavras: você recebe só as pistas e o número de letras. Decifre e ache no tabuleiro. A 🔍 lupa ajuda quando travar.</p>`;
   } else if(modo==='solo' && tipo==='robo'){
     info.style.display = '';
@@ -2669,7 +2676,7 @@ function renderLobby(){
     : s.tema ? ((TEMAS.find(t=>t.id===s.tema)||{}).emoji||'') + ' ' + ((TEMAS.find(t=>t.id===s.tema)||{}).nome||s.tema) : '…';
   const slot = j => j
     ? `<div class="lobby-slot on"><span class="avatar">${avatarSvg(j.a)}</span><b>${esc(j.n)}${j.u===meu?' <small>(você)</small>':''}</b><small>${j.papel==='dono'?'criou a sala':'entrou!'}</small></div>`
-    : `<div class="lobby-slot"><span class="avatar lobby-espera" style="opacity:.35">${avatarSvg('tatu')}</span><b style="color:var(--sub)">esperando…</b><small>manda o código!</small></div>`;
+    : `<div class="lobby-slot"><img class="mascote-espera lobby-espera" src="mascote/mascote-pensa.webp" alt=""><b style="color:var(--sub)">esperando…</b><small>manda o código!</small></div>`;
   const cheia = arr.length >= 2;
   const convite = `⚡ Bora uma corrida de caça-palavras AGORA?\n${temaN} · nível ${s.dif ? NIVEIS[s.dif].nome : ''}\nEntra aqui que eu te espero 👇\n${linkSala(SALA.code)}\n\nOu digita o código no app: ${SALA.code}`;
   $('#lobby-corpo').innerHTML = `
@@ -3046,10 +3053,10 @@ window.addEventListener('appinstalled', ()=>{ INSTALL.evt = null; toast('App ins
 
 /* ---------- novidades da versão ---------- */
 const APP_NEWS = [
-  ['⚡','Corrida blindada','O placar final agora fecha igualzinho nos dois celulares, mesmo com internet oscilando.'],
-  ['🎨','Fundos de tabuleiro','Quadro-negro, madeira, céu estrelado, areia e mais. Troque em Ajustes.'],
-  ['🌙','Céu noturno secreto','Faça 7 dias seguidos no desafio diário pra destrancar o fundo estrelado.'],
-  ['🤖','Corrida contra o robô','Treine a corrida offline em três espertezas.']
+  ['🦫','Chegou a mascote!','A capivara detetive agora dá as caras pelo app: boas-vindas, vitórias, derrotas e espera da corrida.'],
+  ['⚡','Corrida blindada','O placar final fecha igualzinho nos dois celulares, mesmo com internet oscilando.'],
+  ['🎨','Fundos de tabuleiro','Quadro-negro, madeira, céu estrelado e mais. Troque em Ajustes.'],
+  ['🌙','Céu noturno secreto','Faça 7 dias seguidos no diário pra destrancar o fundo estrelado.']
 ];
 function newsCheck(){
   const visto = LS.get('newsVisto');
@@ -3065,9 +3072,9 @@ function newsCheck(){
 function onboarding(){
   if(LS.get('onboard')) return false;
   const cards = [
-    ['🔍','Arraste pra achar','Passe o dedo sobre as letras, em linha reta, em qualquer direção. Vale de trás pra frente!'],
-    ['⚡','Jogue com a galera','Desafie pelo WhatsApp no ritmo de cada um, corra ao vivo no mesmo tabuleiro ou treine contra o robô.'],
-    ['📅','Todo dia tem','Desafio diário com ranking da galera, sequência 🔥, conquistas e recordes pra bater.']
+    ['mascote-lupa','Arraste pra achar','Passe o dedo sobre as letras, em linha reta, em qualquer direção. Vale de trás pra frente!'],
+    ['mascote-oi','Jogue com a galera','Desafie pelo WhatsApp no ritmo de cada um, corra ao vivo no mesmo tabuleiro ou treine contra o robô.'],
+    ['mascote-festa','Todo dia tem','Desafio diário com ranking da galera, sequência 🔥, conquistas e recordes pra bater.']
   ];
   let i = 0;
   const ov = document.createElement('div');
@@ -3077,7 +3084,7 @@ function onboarding(){
   const pinta = ()=>{
     const c = cards[i];
     ov.innerHTML = `
-      <div class="ob-card"><span class="ob-emoji">${c[0]}</span><h2>${c[1]}</h2><p>${c[2]}</p></div>
+      <div class="ob-card"><img class="ob-mascote" src="mascote/${c[0]}.webp" alt=""><h2>${c[1]}</h2><p>${c[2]}</p></div>
       <div class="ob-dots">${cards.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div>
       <div class="ob-btns">${i < cards.length-1
         ? `<button class="btn-acao fantasma" id="ob-pular">Pular</button><button class="btn-acao ouro" id="ob-prox">Próximo</button>`
